@@ -25,7 +25,7 @@ const webport = backendEvent.PortAvailable(WebPORT)
 const get_pem = (express:boolean):Promise<[string, string]> => {
     return new Promise<[string, string]>((resolve) => {
         const pemFolder = path.join(os.homedir(), DATA_FOLDER, 'pem')
-        if(!fs.existsSync(pemFolder)) fs.mkdirSync(pemFolder)
+        if(!fs.existsSync(pemFolder)) fs.mkdirSync(pemFolder, { recursive: true })
         const clientKey = path.join(pemFolder, express ? "express_clientkey.pem" : "console_clientkey.pem")
         const certificate = path.join(pemFolder, express ? "express_certificate.pem" : "console_certificate.pem")
         if(!fs.existsSync(clientKey) || !fs.existsSync(certificate)){
