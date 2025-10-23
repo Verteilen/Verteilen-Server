@@ -14,11 +14,16 @@
     },
     "scripts": {
         "dev": "ts-node scripts/dev-server.ts",
-        "build": ""
+        "build": "ts-node scripts/build.ts",
+        "docker": "sh build.sh",
+        "docker:p": "sh build.sh --publish",
+        "publish": "npm publish"
+        
     },
     "dependencies": {
+        "argparse": "^2.0.1",
         "browser-or-node": "^3.0.0",
-        "chalk": "^4.1.2",
+        "chokidar": "^4.0.3",
         "cookie-parser": "^1.4.7",
         "express": "^4.21.2",
         "expressionparser": "^1.1.5",
@@ -26,21 +31,27 @@
         "jsonwebtoken": "^9.0.2",
         "keypair": "^1.0.4",
         "multer": "^2.0.1",
+        "nodejs-file-downloader": "^4.13.0",
         "pem": "^1.14.8",
+        "progress": "^2.0.3",
         "tcp-port-used": "^1.0.2",
         "uuid": "^11.0.5",
         "verteilen-core": "^1.0.4",
+        "vite": "^7.1.12",
         "vue-i18n": "^10.0.5",
         "ws": "^8.18.0"
     },
     "devDependencies": {
+        "@types/argparse": "^2.0.17",
         "@types/bcrypt": "^6.0.0",
         "@types/body-parser": "^1.19.6",
+        "@types/byte-size": "^8.1.2",
         "@types/cookie-parser": "^1.4.9",
         "@types/express": "^5.0.3",
         "@types/jsonwebtoken": "^9.0.10",
         "@types/multer": "^2.0.0",
         "@types/pem": "^1.14.4",
+        "@types/progress": "^2.0.7",
         "@types/tcp-port-used": "^1.0.4",
         "@types/ws": "^8.18.1"
     }

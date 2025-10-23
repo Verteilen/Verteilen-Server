@@ -11,5 +11,5 @@
     "resolveJsonModule": true,
     "noImplicitAny": false,
   },
-  "exclude": ["static", "scripts", "dist", "public"]
+  "exclude": ["static", "scripts", "dist", "public", "Verteilen"]
 }

@@ -13,6 +13,7 @@ import {
     WebPORT 
 } from 'verteilen-core'
 import { EventInit } from './event_http'
+import { checker } from './worker_download'
 
 let wsServer: ws.Server | undefined = undefined
 let app:express.Express | undefined = undefined
@@ -40,6 +41,7 @@ const get_pem = (express:boolean):Promise<[string, string]> => {
 }
 
 export const main = async (middle?:any):Promise<[express.Express | undefined, ws.Server | undefined]> => {
+    await checker()
     return new Promise<[express.Express | undefined, ws.Server | undefined]>(async (resolve) => {
         const p = await webport
         {

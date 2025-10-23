@@ -3,10 +3,9 @@ process.env.NODE_ENV = 'development';
 import Chalk from 'chalk';
 import Chokidar from 'chokidar';
 import cluster, { Worker } from 'cluster'
-import { main as app } from './../src/server/index'
+import { main as app } from './../src/index'
 import Path from 'path';
 import * as Vite from 'vite';
-import * as util from './utility';
 
 let viteServer:Vite.ViteDevServer | null = null;
 let expressProcess:Worker | null = null;
@@ -16,7 +15,7 @@ let lock = false
 async function startRenderer() {
     viteServer = await Vite.createServer({
         server: { middlewareMode: true, hmr: { host: "localhost", protocol: 'ws' } },
-        configFile: Path.join(__dirname, '..', 'vite.config.js'),
+        configFile: Path.join(__dirname, '..', 'Verteilen', 'vite.config.js'),
         mode: 'development',
     });
     return viteServer.middlewares;
@@ -35,7 +34,6 @@ async function restartExpress() {
         expressProcess.kill();
         expressProcess = null;
     }
-    await util.Share_Call()
     if(!expressProcess) {
         expressProcess = cluster.fork()
         setTimeout(() => {
@@ -50,7 +48,6 @@ function stop() {
 }
 
 async function main() {
-    await util.Share_Call()
     expressProcess = cluster.fork()
     expressProcess.on('message', (message) => {
         console.log(Chalk.blueBright(`[dev-server fork] `) + `${message}`);
