@@ -6,9 +6,6 @@ yarn-debug.log*
 yarn-error.log*
 lerna-debug.log*
 
-# git
-Verteilen
-
 # Diagnostic reports (https://nodejs.org/api/report.html)
 report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
 
@@ -142,3 +139,4 @@ app
 # Vite logs files
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
+Verteilen
