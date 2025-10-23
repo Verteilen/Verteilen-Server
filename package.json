@@ -1,0 +1,47 @@
+{
+    "name": "verteilen-server",
+    "version": "1.0.0",
+    "description": "The backend with web user-interface server of verteilen software",
+    "homepage": "https://verteilen.github.io/wiki/",
+    "author": "Elly",
+    "repository": "https://github.com/Verteilen/Verteilen-Server",
+    "main": "dist/index.js",
+    "bin": {
+        "verteilen-server": "dist/index.js"
+    },
+    "bugs": {
+        "url": "https://github.com/Verteilen/Verteilen-Server/issues"
+    },
+    "scripts": {
+        "dev": "ts-node scripts/dev-server.ts",
+        "build": ""
+    },
+    "dependencies": {
+        "browser-or-node": "^3.0.0",
+        "chalk": "^4.1.2",
+        "cookie-parser": "^1.4.7",
+        "express": "^4.21.2",
+        "expressionparser": "^1.1.5",
+        "js-cookie": "^3.0.5",
+        "jsonwebtoken": "^9.0.2",
+        "keypair": "^1.0.4",
+        "multer": "^2.0.1",
+        "pem": "^1.14.8",
+        "tcp-port-used": "^1.0.2",
+        "uuid": "^11.0.5",
+        "verteilen-core": "^1.0.4",
+        "vue-i18n": "^10.0.5",
+        "ws": "^8.18.0"
+    },
+    "devDependencies": {
+        "@types/bcrypt": "^6.0.0",
+        "@types/body-parser": "^1.19.6",
+        "@types/cookie-parser": "^1.4.9",
+        "@types/express": "^5.0.3",
+        "@types/jsonwebtoken": "^9.0.10",
+        "@types/multer": "^2.0.0",
+        "@types/pem": "^1.14.4",
+        "@types/tcp-port-used": "^1.0.4",
+        "@types/ws": "^8.18.1"
+    }
+}
