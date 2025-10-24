@@ -18,7 +18,6 @@
         "docker": "sh build.sh",
         "docker:p": "sh build.sh --publish",
         "publish": "npm publish"
-        
     },
     "dependencies": {
         "argparse": "^2.0.1",
@@ -36,7 +35,7 @@
         "progress": "^2.0.3",
         "tcp-port-used": "^1.0.2",
         "uuid": "^11.0.5",
-        "verteilen-core": "^1.0.4",
+        "verteilen-core": "^1.0.14",
         "vite": "^7.1.12",
         "vue-i18n": "^10.0.5",
         "ws": "^8.18.0"
