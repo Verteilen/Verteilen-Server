@@ -22,12 +22,17 @@ let wss:https.Server<any> | undefined = undefined
 
 const webport = backendEvent.PortAvailable(WebPORT)
 
-const get_pem = (express:boolean):Promise<[string, string]> => {
+/**
+ * Get Key, Cert string for https server\
+ * If store files does not exist, it will generate one
+ * @returns String array with [Key, Cert]
+ */
+const get_pem = ():Promise<[string, string]> => {
     return new Promise<[string, string]>((resolve) => {
         const pemFolder = path.join(os.homedir(), DATA_FOLDER, 'pem')
         if(!fs.existsSync(pemFolder)) fs.mkdirSync(pemFolder, { recursive: true })
-        const clientKey = path.join(pemFolder, express ? "express_clientkey.pem" : "console_clientkey.pem")
-        const certificate = path.join(pemFolder, express ? "express_certificate.pem" : "console_certificate.pem")
+        const clientKey = path.join(pemFolder, "express_clientkey.pem")
+        const certificate = path.join(pemFolder, "express_certificate.pem")
         if(!fs.existsSync(clientKey) || !fs.existsSync(certificate)){
             pem.createCertificate({selfSigned: true}, (err, keys) => {
                 fs.writeFileSync(clientKey, keys.clientKey, { encoding: 'utf8' })
@@ -40,13 +45,22 @@ const get_pem = (express:boolean):Promise<[string, string]> => {
     })
 }
 
+/**
+ * @param middle The vite server instance
+ * * Null or Undefined: Use public folder as static
+ * * have Instance: Use vite server instance
+ * @returns [Express Instance, Websocket Server Instance]
+ */
 export const main = async (middle?:any):Promise<[express.Express | undefined, ws.Server | undefined]> => {
+    // Check worker.exe existance
     await checker()
     return new Promise<[express.Express | undefined, ws.Server | undefined]>(async (resolve) => {
         const p = await webport
+        /**
+         * Https
+         */
         {
-            
-            const pems = await get_pem(true)
+            const pems = await get_pem()
             app = express()
             httpss = https.createServer({ key: pems[0], cert: pems[1], minVersion: 'TLSv1.2', maxVersion: 'TLSv1.3' }, app)
             EventInit(app, middle)
@@ -55,6 +69,9 @@ export const main = async (middle?:any):Promise<[express.Express | undefined, ws
             })
             backendEvent.Root(p)
         }
+        /**
+         * WebSocket
+         */
         {
             //wsServer = new ws.Server({port: p})
             wsServer = new ws.Server({server: httpss})
@@ -77,6 +94,10 @@ export const main = async (middle?:any):Promise<[express.Express | undefined, ws
     })
 }
 
+
+/**
+ * Server entry point
+ */
 if (require.main === module) {
     main();
 }

@@ -16,13 +16,15 @@ import {
     JobCategory, 
     JobType, 
     Libraries, 
-    LocalPermiision, 
+    LocalPermission, 
     PermissionType, 
     PluginList, 
     ServerSetting, 
     UserProfile, 
     UserProfileClient, 
-    UserType 
+    UserType, 
+    CreateRootUser,
+    CreateRootPermission
 } from 'verteilen-core'
 import { Loader, TypeMap } from "./util/loader"
 import { Util_Server } from "./util/server/server"
@@ -147,10 +149,14 @@ export class BackendEvent {
         }
     }
 
+    /**
+     * Prevent use port which it's already use by other program
+     * @param start Port start number
+     * @returns The available port
+     */
     PortAvailable = async (start:number) => {
         let port_result = start
         let canbeuse = false
-
         while(!canbeuse){
             await tcpPortUsed.check(port_result).then(x => {
                 canbeuse = !x
@@ -159,7 +165,6 @@ export class BackendEvent {
             })
             if(!canbeuse) port_result += 1
         }
-
         return port_result
     }
 
@@ -181,22 +186,7 @@ export class BackendEvent {
         if(!fs.existsSync(pa)) fs.mkdirSync(pa, {recursive: true});
         const c = fs.readdirSync(pa).length
         if(c == 0){
-            const root:UserProfile = {
-                token: uuidv6(),
-                type: UserType.ROOT,
-                preference: {
-                    lan: 'en',
-                    log: true,
-                    font: 18,
-                    theme: "dark",
-                    notification: false,
-                    plugin_token: [],
-                    animation: true,
-                },
-                name: "root",
-                description: "Root User",
-                permission: this.RootPermission()
-            }
+            const root:UserProfile = CreateRootUser()
             fs.writeFileSync(path.join(pa, root.token + '.json'), JSON.stringify(root, null, 2))
             console.log(`Login with root using: ${root.token} `)
             console.log(`Login with root using: https://127.0.0.1:${port}/login/${root.token} `)
@@ -221,27 +211,6 @@ export class BackendEvent {
         }
     }
 
-    RootPermission = () => {
-        const perl:LocalPermiision = {
-            view: true,
-            create: true,
-            edit: true,
-            delete: true,
-        }
-        const per:GlobalPermission = {
-            project: perl,
-            task: perl,
-            job: perl,
-            plugin: perl,
-            node: perl,
-            parameter: perl,
-            lib: perl,
-            log: perl,
-            execute_job: true
-        }
-        return per
-    }
-
     GetUserType = (token?:string):UserProfileClient => {
         const pa_root = path.join(os.homedir(), DATA_FOLDER)
         const pa = path.join(pa_root, 'user')
@@ -255,7 +224,7 @@ export class BackendEvent {
                     type: p.type,
                     picture_url: false,
                     description: p.description,
-                    permission: p.type == UserType.ROOT ? this.RootPermission() : p.permission
+                    permission: p.type == UserType.ROOT ? CreateRootPermission() : p.permission
                 }
             }
         }

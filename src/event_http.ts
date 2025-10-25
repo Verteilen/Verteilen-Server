@@ -67,17 +67,7 @@ export const EventInit = (app: express.Express, middle?:any) => {
             res.sendStatus(200)
         }
     })
-    app.use((req, res, next) => {
-        next()
-        return
-        if(req.cookies.token == undefined) {
-            res.sendStatus(403)
-        }else{
-            if(backendEvent.IsPass(req.cookies.token)) {
-                next()
-            }else{
-                res.sendStatus(403)
-            }
-        }
-    }, middle ? middle : express.static(path.join(__dirname, 'public')))
+    const apiRoute = app.route('/api')
+
+    app.use(middle ? middle : express.static(path.join(__dirname, 'public')))
 }
