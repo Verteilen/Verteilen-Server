@@ -168,15 +168,6 @@ export class Util_Server {
         socket.send(JSON.stringify(h))
     }
 
-    private console_record = (socket:ws.WebSocket, uuid:string) => {
-        const r = this.execute_manager.find(x => x.record?.uuid == uuid)?.record
-        const h:Header = {
-            name: "console_record-feedback",
-            data: JSON.stringify(r)
-        }
-        socket.send(JSON.stringify(h))
-    }
-
     private shellReply = (data:Single, p?:WebsocketPack) => {
         if(p == undefined) return
         if(this.shellBind.has(p.uuid)){
@@ -200,6 +191,15 @@ export class Util_Server {
                 x.send(JSON.stringify(h))  
             })
         }
+    }
+
+    private console_record = (socket:ws.WebSocket, uuid:string) => {
+        const r = this.execute_manager.find(x => x.record?.uuid == uuid)?.record
+        const h:Header = {
+            name: "console_record-feedback",
+            data: JSON.stringify(r)
+        }
+        socket.send(JSON.stringify(h))
     }
 
     private console_execute = (socket:ws.WebSocket | undefined, uuid:string, type:number) => {
