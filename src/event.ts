@@ -3,11 +3,12 @@ import * as ws from 'ws'
 import * as path from "path"
 import * as fs from "fs"
 import * as os from "os"
+import { Socket } from 'socket.io';
 import { v6 as uuidv6 } from 'uuid'
 import { messager, messager_log } from "./debugger"
 import { 
     ClientJobExecute, 
-    Execute_ConsoleServerManager, 
+    ConsoleServerManager, 
     ClientJavascript, 
     DATA_FOLDER, 
     GlobalPermission, 
@@ -18,33 +19,64 @@ import {
     Libraries, 
     LocalPermission, 
     PermissionType, 
-    PluginList, 
+    PluginNode, 
     ServerSetting, 
     UserProfile, 
     UserProfileClient, 
     UserType, 
     CreateRootUser,
-    CreateRootPermission
+    CreateRootPermission,
+    ConsoleServerContainer,
+    Server,
+    BackendAction,
+    CreatePreference,
+    Preference,
+    TypeMap,
+    CreatePluginLoader,
+    PluginFeedback,
+    ServerDetail
 } from 'verteilen-core'
-import { Loader, TypeMap } from "./util/loader"
 import { Util_Server } from "./util/server/server"
-import { PluginInit } from './util/plugin'
+import { Loader } from './util/init/Loader'
+import { PluginInit } from './util/init/PluginInit'
+import { DetailInit } from './util/init/DetailInit'
+import { CreateIO } from './util/init/CreateIO'
 
-export class BackendEvent {
-    manager:Array<Execute_ConsoleServerManager.ConsoleServerManager> = []
+export class BackendEvent extends Server implements BackendAction {
+    console:ConsoleServerManager
+
+    preference: Preference = CreatePreference()
 
     setting: ServerSetting | undefined
-    jsCall:ClientJavascript.ClientJavascript
+    jsCall:ClientJavascript
     util: Util_Server = new Util_Server(this)
     libs:Libraries = {libs: []}
     
     constructor(){
-        this.jsCall = new ClientJavascript.ClientJavascript(messager, messager_log, () => undefined)
+        super()
+        this.io = CreateIO()
+        const feedback:PluginFeedback = {
+            socket: undefined
+        }
+        this.plugin_loader = CreatePluginLoader(this.io!, this.plugin, (uuid:string) => this.detail!.websocket_manager?.targets.find(x => x.uuid == uuid), feedback)
+        this.plugin_loader.load_all()
+
+        this.detail = new ServerDetail(this.io, this, feedback, messager, console.log)
+        
+        this.jsCall = new ClientJavascript(messager, messager_log, () => undefined)
+        this.console = new ConsoleServerManager(messager_log)
     }
 
-    // The new manager enter the hood
-    NewConsoleConsole = (socket:ws.WebSocket) => {
-        console.log(`New Connection ${socket.url}`)
+    GetPreference = (uuid?: string):Preference => {
+        return this.preference
+    }
+
+    /**
+     * The new manager enter the hood
+     * @param socket 
+     */
+    NewConsoleConsole = (socket:Socket) => {
+        console.log(`New Connection ${socket.id}`)
         let typeMap:TypeMap = {
             'javascript': this.javascript,
             'message': this.message,
@@ -53,30 +85,33 @@ export class BackendEvent {
             'load_preference': this.load_preference,
         }
         typeMap = this.util.EventInit(typeMap)
-        Loader(typeMap, 'record', 'record', PermissionType.PROJECT)
-        Loader(typeMap, 'parameter', 'parameter', PermissionType.PARAMETER)
-        Loader(typeMap, 'node', 'node', PermissionType.NODE)
-        Loader(typeMap, 'log', 'log', PermissionType.LOG)
-        Loader(typeMap, 'lib', 'lib', PermissionType.LIB, '')
-        Loader(typeMap, 'user', 'user', PermissionType.ROOT)
-        PluginInit(typeMap, this)
-        const n = new Execute_ConsoleServerManager.ConsoleServerManager(socket, messager_log, typeMap)
-        this.manager.push(n)
-        return n
+        Loader(typeMap, this.current_loader.project, 'project')
+        Loader(typeMap, this.current_loader.task, 'task')
+        Loader(typeMap, this.current_loader.job, 'job')
+        Loader(typeMap, this.current_loader.database, 'database')
+        Loader(typeMap, this.current_loader.node, 'node')
+        Loader(typeMap, this.current_loader.log, 'log')
+        Loader(typeMap, this.current_loader.lib, 'lib')
+        PluginInit(typeMap, this.plugin_loader!)
+        DetailInit(socket, typeMap, this.detail!)
+        return this.console.Add(socket, typeMap);
+    }
+    // The manager frontend leave
+    DropConsoleConsole = (socket:Socket) => {
+        this.console.Remove(socket)
     }
 
-    DropConsoleConsole = (socket:ws.WebSocket) => {
-        const index = this.manager.findIndex(x => x.ws == socket)
-        if(index != -1) this.manager.splice(index, 1)
-    }
-
-    ConsoleAnalysis = (socket:ws.WebSocket, h:Header) => {
-        const index = this.manager.findIndex(x => x.ws == socket)
+    ConsoleAnalysis = (socket:Socket, h:Header) => {
+        const index = this.console.admins.findIndex(x => x.socket.id == socket.id)
+        let buffer: ConsoleServerContainer | undefined = undefined
         if(index != -1) {
-            this.manager[index].Analysis(h)
+            buffer = this.console.admins[index]
         } else {
-            const n = this.NewConsoleConsole(socket)
-            n.Analysis(h)
+            buffer = this.NewConsoleConsole(socket)
+        }
+        if(buffer!.typeMap[h.name] != undefined){
+            h.
+            buffer!.typeMap[h.name]()
         }
     }
 
@@ -87,7 +122,7 @@ export class BackendEvent {
     }
 
     //#region Manager Side
-    private javascript = (socket:ws.WebSocket, content:string, parameter:string | undefined) => {
+    private javascript = (socket:ws.WebSocket, content:string, database:string | undefined) => {
         const javascript_messager_feedback = (msg:string, tag?:string) => {
             messager(msg, tag)
             const d:Header = {
@@ -99,16 +134,19 @@ export class BackendEvent {
 
         const d:Job = {
             uuid: 'javascript',
+            title: "execute javascript",
+            description: "",
             category: JobCategory.Execution,
             type: JobType.JAVASCRIPT,
             script: content,
+            id_args: [],
             string_args: [],
             number_args: [],
             boolean_args: []
         }
-        const p:PluginList = { plugins: [] }
-        const worker = new ClientJobExecute.ClientJobExecute(javascript_messager_feedback, javascript_messager_feedback, d, undefined, p)
-        worker.parameter = parameter ? JSON.parse(parameter) : undefined
+        const p:PluginNode = { plugins: [] }
+        const worker = new ClientJobExecute(javascript_messager_feedback, javascript_messager_feedback, d, undefined)
+        worker.database = database ? JSON.parse(database) : undefined
         worker.execute().then(x => {
             javascript_messager_feedback(x, "Finish")
         })
