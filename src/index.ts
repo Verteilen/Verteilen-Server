@@ -63,7 +63,7 @@ export const main = async (middle?:any):Promise<[express.Express | undefined, ws
             const pems = await get_pem()
             app = express()
             httpss = https.createServer({ key: pems[0], cert: pems[1], minVersion: 'TLSv1.2', maxVersion: 'TLSv1.3' }, app)
-            EventInit(app, middle)
+            EventInit(app, p, middle)
             httpss.listen(p, () => {
                 console.log(Chalk.greenBright(`https server run at ${p}`))
             })

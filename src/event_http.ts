@@ -8,7 +8,7 @@ import cookieParser from 'cookie-parser'
 import { DATA_FOLDER } from 'verteilen-core'
 import { backendEvent } from './event'
 
-export const EventInit = (app: express.Express, middle?:any) => {
+export const EventInit = (app: express.Express, port:number, middle?:any) => {
     const storage = multer.memoryStorage()
     const upload = multer({ dest: 'public/upload', storage: storage })
     app.use(cookieParser())
@@ -66,6 +66,9 @@ export const EventInit = (app: express.Express, middle?:any) => {
             fs.writeFileSync(n, req.file.buffer)
             res.sendStatus(200)
         }
+    })
+    app.get('/test', (req, res) => {
+        res.sendStatus(200)
     })
     const apiRoute = app.route('/api')
 
