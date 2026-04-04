@@ -4,21 +4,17 @@ import * as path from "path"
 import * as fs from "fs"
 import * as os from "os"
 import { Socket } from 'socket.io';
-import { v6 as uuidv6 } from 'uuid'
 import { messager, messager_log } from "./debugger"
 import { 
     ClientJobExecute, 
     ConsoleServerManager, 
     ClientJavascript, 
     DATA_FOLDER, 
-    GlobalPermission, 
     Header, 
     Job, 
     JobCategory, 
     JobType, 
     Libraries, 
-    LocalPermission, 
-    PermissionType, 
     PluginNode, 
     ServerSetting, 
     UserProfile, 
@@ -34,13 +30,14 @@ import {
     TypeMap,
     CreatePluginLoader,
     PluginFeedback,
-    ServerDetail
+    ServerDetail,
+    CreateRecordIOLoader,
 } from 'verteilen-core'
-import { Util_Server } from "./util/server/server"
 import { Loader } from './util/init/Loader'
 import { PluginInit } from './util/init/PluginInit'
 import { DetailInit } from './util/init/DetailInit'
 import { CreateIO } from './util/init/CreateIO'
+import { ModuleInit } from './util/init/ModuleInit'
 
 export class BackendEvent extends Server implements BackendAction {
     console:ConsoleServerManager
@@ -49,20 +46,20 @@ export class BackendEvent extends Server implements BackendAction {
 
     setting: ServerSetting | undefined
     jsCall:ClientJavascript
-    util: Util_Server = new Util_Server(this)
     libs:Libraries = {libs: []}
     
     constructor(){
         super()
         this.io = CreateIO()
+        this.loader = CreateRecordIOLoader(this.io, this.memory)
         const feedback:PluginFeedback = {
             socket: undefined
         }
+        this.LoadFromDisk()
         this.plugin_loader = CreatePluginLoader(this.io!, this.plugin, (uuid:string) => this.detail!.websocket_manager?.targets.find(x => x.uuid == uuid), feedback)
         this.plugin_loader.load_all()
-
         this.detail = new ServerDetail(this.io, this, feedback, messager, console.log)
-        
+
         this.jsCall = new ClientJavascript(messager, messager_log, () => undefined)
         this.console = new ConsoleServerManager(messager_log)
     }
@@ -77,24 +74,22 @@ export class BackendEvent extends Server implements BackendAction {
      */
     NewConsoleConsole = (socket:Socket) => {
         console.log(`New Connection ${socket.id}`)
-        let typeMap:TypeMap = {
-            'javascript': this.javascript,
-            'message': this.message,
-            'load_record_obsolete': this.load_record_obsolete,
-            'save_preference': this.save_preference,
-            'load_preference': this.load_preference,
-        }
-        typeMap = this.util.EventInit(typeMap)
-        Loader(typeMap, this.current_loader.project, 'project')
-        Loader(typeMap, this.current_loader.task, 'task')
-        Loader(typeMap, this.current_loader.job, 'job')
-        Loader(typeMap, this.current_loader.database, 'database')
-        Loader(typeMap, this.current_loader.node, 'node')
-        Loader(typeMap, this.current_loader.log, 'log')
-        Loader(typeMap, this.current_loader.lib, 'lib')
-        PluginInit(typeMap, this.plugin_loader!)
-        DetailInit(socket, typeMap, this.detail!)
-        return this.console.Add(socket, typeMap);
+        socket.on('javascript', this.javascript)
+        socket.on('message', this.message)
+        socket.on('load_record_obsolete', this.load_record_obsolete)
+        socket.on('save_preference', this.save_preference)
+        socket.on('load_preference', this.load_preference)
+        Loader(socket, this.current_loader.project, 'project')
+        Loader(socket, this.current_loader.task, 'task')
+        Loader(socket, this.current_loader.job, 'job')
+        Loader(socket, this.current_loader.database, 'database')
+        Loader(socket, this.current_loader.node, 'node')
+        Loader(socket, this.current_loader.log, 'log')
+        Loader(socket, this.current_loader.lib, 'lib')
+        PluginInit(socket, this.plugin_loader!)
+        DetailInit(socket, this.detail!)
+        ModuleInit(socket, this.module_project, () => this.memory)
+        return this.console.Add(socket);
     }
     /**
      * Remove manager frontend instance
@@ -102,31 +97,6 @@ export class BackendEvent extends Server implements BackendAction {
      */
     DropConsoleConsole = (socket:Socket) => {
         this.console.Remove(socket)
-    }
-    /**
-     * Process the message coming from manager frontend
-     * @param socket The socket instance
-     * @param h Data Header
-     */
-    ConsoleAnalysis = (socket:Socket, h:Header) => {
-        const index = this.console.admins.findIndex(x => x.socket.id == socket.id)
-        let buffer: ConsoleServerContainer | undefined = undefined
-        if(index != -1) {
-            buffer = this.console.admins[index]
-        } else {
-            buffer = this.NewConsoleConsole(socket)
-        }
-        if(buffer!.typeMap[h.name] != undefined){
-            if(h.data == undefined || h.data == null){
-                buffer!.typeMap[h.name]()
-            }else if(Array.isArray(h.data)){
-                buffer!.typeMap[h.name](...h.data)
-            }else{
-                buffer!.typeMap[h.name](h.data)
-            }
-        }else{
-            messager_log("[ConsoleAnalysis]", `Cannot find the match name in the typemap registery: "${h.name}"`)
-        }
     }
 
     IsPass = (token:string) => {
