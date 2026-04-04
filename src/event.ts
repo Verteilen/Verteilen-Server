@@ -96,11 +96,18 @@ export class BackendEvent extends Server implements BackendAction {
         DetailInit(socket, typeMap, this.detail!)
         return this.console.Add(socket, typeMap);
     }
-    // The manager frontend leave
+    /**
+     * Remove manager frontend instance
+     * @param socket 
+     */
     DropConsoleConsole = (socket:Socket) => {
         this.console.Remove(socket)
     }
-
+    /**
+     * Process the message coming from manager frontend
+     * @param socket The socket instance
+     * @param h Data Header
+     */
     ConsoleAnalysis = (socket:Socket, h:Header) => {
         const index = this.console.admins.findIndex(x => x.socket.id == socket.id)
         let buffer: ConsoleServerContainer | undefined = undefined
@@ -110,8 +117,15 @@ export class BackendEvent extends Server implements BackendAction {
             buffer = this.NewConsoleConsole(socket)
         }
         if(buffer!.typeMap[h.name] != undefined){
-            h.
-            buffer!.typeMap[h.name]()
+            if(h.data == undefined || h.data == null){
+                buffer!.typeMap[h.name]()
+            }else if(Array.isArray(h.data)){
+                buffer!.typeMap[h.name](...h.data)
+            }else{
+                buffer!.typeMap[h.name](h.data)
+            }
+        }else{
+            messager_log("[ConsoleAnalysis]", `Cannot find the match name in the typemap registery: "${h.name}"`)
         }
     }
 
@@ -205,16 +219,6 @@ export class BackendEvent extends Server implements BackendAction {
         }
         return port_result
     }
-
-    Boradcasting = (name:string, data:any) => {
-        const d:Header = {
-            name: name,
-            data: data
-        }
-        this.manager.forEach(x => {
-            x.ws.send(JSON.stringify(d))
-        })
-    }
     //#endregion
 
     //#region Server
@@ -262,7 +266,7 @@ export class BackendEvent extends Server implements BackendAction {
                     type: p.type,
                     picture_url: false,
                     description: p.description,
-                    permission: p.type == UserType.ROOT ? CreateRootPermission() : p.permission
+                    permission: p.type == UserType.ROOT ? CreateRootPermission() : p.global_permission
                 }
             }
         }

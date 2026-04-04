@@ -1,4 +1,4 @@
-import * as ws from 'ws'
+import { Server as SocketServer } from 'socket.io'
 import * as fs from 'fs'
 import * as pem from 'pem'
 import * as os from 'os'
@@ -15,7 +15,7 @@ import {
 import { EventInit } from './event_http'
 import { checker } from './worker_download'
 
-let wsServer: ws.Server | undefined = undefined
+let wsServer: SocketServer | undefined = undefined
 let app:express.Express | undefined = undefined
 let httpss:https.Server<any> | undefined = undefined
 let wss:https.Server<any> | undefined = undefined
@@ -51,10 +51,10 @@ const get_pem = ():Promise<[string, string]> => {
  * * have Instance: Use vite server instance
  * @returns [Express Instance, Websocket Server Instance]
  */
-export const main = async (middle?:any):Promise<[express.Express | undefined, ws.Server | undefined]> => {
+export const main = async (middle?:any):Promise<[express.Express | undefined, SocketServer | undefined]> => {
     // Check worker.exe existance
     await checker()
-    return new Promise<[express.Express | undefined, ws.Server | undefined]>(async (resolve) => {
+    return new Promise<[express.Express | undefined, SocketServer | undefined]>(async (resolve) => {
         const p = await webport
         /**
          * Https
@@ -74,7 +74,7 @@ export const main = async (middle?:any):Promise<[express.Express | undefined, ws
          */
         {
             //wsServer = new ws.Server({port: p})
-            wsServer = new ws.Server({server: httpss})
+            wsServer = new SocketServer(httpss)
             console.log(Chalk.greenBright(`websocket server run at ${p}`))
             wsServer.on('connection', (ws) => {
                 //const p = new eventInit(ws)
