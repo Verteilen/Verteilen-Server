@@ -214,10 +214,12 @@ export class BackendEvent extends Server implements BackendAction {
         }
         const server_setting = path.join(pa_root, "server.json")
         if(!fs.existsSync(server_setting)){
+            /**
             this.setting = {
                 open_guest: false
             }
             fs.writeFileSync(server_setting, JSON.stringify(this.setting, null, 2))
+             */
         }else{
             this.setting = JSON.parse(fs.readFileSync(server_setting).toString());
         }

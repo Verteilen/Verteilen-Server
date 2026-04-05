@@ -74,14 +74,15 @@ export const main = async (middle?:any):Promise<[express.Express | undefined, So
          */
         {
             //wsServer = new ws.Server({port: p})
-            wsServer = new SocketServer(httpss)
+            wsServer = new SocketServer(httpss, {
+                cors: {
+                    origin: "*",
+                    methods: ["GET", "POST"]
+                }
+            })
             console.log(Chalk.greenBright(`websocket server run at ${p}`))
             wsServer.on('connection', (ws) => {
                 //const p = new eventInit(ws)
-                ws.on('message', (data) => {
-                    const d:Header = JSON.parse(data.toString())
-                    backendEvent.ConsoleAnalysis(ws, d)
-                })
                 ws.on('open', () => {
                     backendEvent.NewConsoleConsole(ws)
                 })

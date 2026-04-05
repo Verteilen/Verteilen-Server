@@ -5,8 +5,10 @@ import path from 'path'
 import multer from 'multer'
 import bodyPreser from 'body-parser'
 import cookieParser from 'cookie-parser'
-import { BackendType, DATA_FOLDER } from 'verteilen-core'
+import cors from 'cors'
+import { AuthType, BackendType, DATA_FOLDER, ServerSetupRequire } from 'verteilen-core'
 import { backendEvent } from './event'
+import { SetupAuthSelf } from './auth'
 
 export const EventInit = (app: express.Express, port:number, middle?:any) => {
     const storage = multer.memoryStorage()
@@ -15,6 +17,7 @@ export const EventInit = (app: express.Express, port:number, middle?:any) => {
     app.use(bodyPreser.json())
     app.use(bodyPreser.urlencoded())
     app.use(bodyPreser.urlencoded({ extended: true }))
+    app.use(cors());
     console.log("current dir: ", process.cwd())
     app.get('/login/:token', (req, res, next) => {
         if(req.params.token != undefined) {
@@ -68,9 +71,41 @@ export const EventInit = (app: express.Express, port:number, middle?:any) => {
         }
     })
     app.get('/test', (req, res) => {
-        res.sendStatus(200).send({
-            type: BackendType.SERVER
+        const p = fs.existsSync(path.join(os.homedir(), DATA_FOLDER, 'server.json'))
+        res.send({
+            type: BackendType.SERVER,
+            setup: p
         })
+    })
+    app.post("/setup", (req, res) => {
+        const file = path.join(os.homedir(), DATA_FOLDER, 'server.json')
+        const p = fs.existsSync(file)
+        if(p){
+            res.sendStatus(503)
+            return
+        }
+        const data:ServerSetupRequire = req.body
+        if(data.setting == undefined){
+            res.sendStatus(400)
+            return
+        }
+        fs.writeFileSync(file, JSON.stringify(data.setting, null, 4))
+        if(data.setting.auth.auth_type == AuthType.SELF){
+            if(data.root == undefined){
+                res.sendStatus(400)
+                return
+            }
+            SetupAuthSelf(data.root.root_username, data.root.root_password).then(() => {
+                res.sendStatus(200)
+            })
+        }
+        else if(data.setting.auth.auth_type == AuthType.EXTERNAL){
+            
+        }
+        else if(data.setting.auth.auth_type == AuthType.SERVICE){
+            
+        }
+        res.sendStatus(200)
     })
     const apiRoute = app.route('/api')
 

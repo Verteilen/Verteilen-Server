@@ -14,7 +14,7 @@
     },
     "scripts": {
         "dev": "ts-node scripts/dev-server.ts",
-        "build": "ts-node scripts/build.ts",
+        "build": "tsc && ts-node scripts/build.ts",
         "docker": "sh build.sh",
         "docker:p": "sh build.sh --publish",
         "publish": "npm publish",
@@ -22,10 +22,12 @@
         "update": "sh update.sh"
     },
     "dependencies": {
+        "@types/cors": "^2.8.19",
         "argparse": "^2.0.1",
         "browser-or-node": "^3.0.0",
         "chokidar": "^4.0.3",
         "cookie-parser": "^1.4.7",
+        "cors": "^2.8.6",
         "express": "^4.21.2",
         "expressionparser": "^1.1.5",
         "js-cookie": "^3.0.5",
@@ -36,9 +38,10 @@
         "pem": "^1.14.8",
         "progress": "^2.0.3",
         "socket.io": "^4.8.3",
+        "sqlite3": "^6.0.1",
         "tcp-port-used": "^1.0.2",
         "uuid": "^11.0.5",
-        "verteilen-core": "^1.4.73",
+        "verteilen-core": "^1.4.80",
         "vite": "^7.1.12",
         "vue-i18n": "^10.0.5",
         "ws": "^8.18.0"

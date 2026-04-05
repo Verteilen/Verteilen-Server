@@ -2,7 +2,7 @@ import { cp } from 'fs/promises'
 import * as Path from 'path'
 
 async function Render2Server() {
-    const source = Path.join(__dirname, '..', 'Verteilen', 'build', 'renderer')
+    const source = Path.join(__dirname, '..', 'Verteilen', 'build')
     const target = Path.join(__dirname, '..', 'dist', 'public')
     return cp(source, target, { recursive: true })
 }
