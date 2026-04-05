@@ -1,5 +1,5 @@
 import { Socket } from "socket.io";
-import { PluginLoader, TypeMap } from "verteilen-core";
+import { PluginLoader } from "../../server/plugin";
 
 export const PluginInit = (socket:Socket, loader:PluginLoader) => {
     loader.get_plugins(socket)

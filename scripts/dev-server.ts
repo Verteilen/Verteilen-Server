@@ -3,7 +3,7 @@ process.env.NODE_ENV = 'development';
 import Chalk from 'chalk';
 import Chokidar from 'chokidar';
 import cluster, { Worker } from 'cluster'
-import { main as app } from './../src/index'
+import { main as app } from '../src/index'
 import Path from 'path';
 import * as Vite from 'vite';
 

@@ -1,5 +1,5 @@
 import { Socket } from "socket.io";
-import { RecordIOLoader, TypeMap } from "verteilen-core";
+import { RecordIOLoader } from "../../server/io";
 
 export const Loader = (socket:Socket, loader:RecordIOLoader, key:string) => {
     socket.on(`load_all_${key}`, (token?:string) => loader.load_all(token))

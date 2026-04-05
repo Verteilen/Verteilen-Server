@@ -6,9 +6,6 @@ import * as os from "os"
 import { Socket } from 'socket.io';
 import { messager, messager_log } from "./debugger"
 import { 
-    ClientJobExecute, 
-    ConsoleServerManager, 
-    ClientJavascript, 
     DATA_FOLDER, 
     Header, 
     Job, 
@@ -20,19 +17,13 @@ import {
     UserProfile, 
     UserProfileClient, 
     UserType, 
-    CreateRootUser,
     CreateRootPermission,
-    ConsoleServerContainer,
-    Server,
     BackendAction,
     CreatePreference,
     Preference,
-    TypeMap,
-    CreatePluginLoader,
-    PluginFeedback,
-    ServerDetail,
-    CreateRecordIOLoader,
     AuthType,
+    ClientJavascript,
+    ClientJobExecute,
 } from 'verteilen-core'
 import { Loader } from './util/init/Loader'
 import { PluginInit } from './util/init/PluginInit'
@@ -40,6 +31,12 @@ import { DetailInit } from './util/init/DetailInit'
 import { CreateIO } from './util/init/CreateIO'
 import { ModuleInit } from './util/init/ModuleInit'
 import { GetRootSelf } from './auth'
+import { Server } from './server/server2'
+import { ConsoleServerManager } from './script/console_server_manager'
+import { ServerDetail } from './server/detail'
+import { CreateRecordIOLoader } from './server/io2'
+import { CreatePluginLoader } from './server/plugin'
+import { PluginFeedback } from './server/server'
 
 export class BackendEvent extends Server implements BackendAction {
     console:ConsoleServerManager

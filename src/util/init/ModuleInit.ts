@@ -1,5 +1,6 @@
 import { Socket } from "socket.io"
-import { Project_Module, MemoryData, TypeMap } from "verteilen-core"
+import { MemoryData } from "verteilen-core"
+import { Project_Module } from "../../server/module/project"
 
 export const ModuleInit = (socket:Socket, project:Project_Module, memory:()=>MemoryData) => {
     // Project

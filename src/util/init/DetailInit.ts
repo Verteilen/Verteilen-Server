@@ -1,4 +1,4 @@
-import { ExecuteState, ServerDetailEvent, TypeMap, Record } from "verteilen-core";
+import { ExecuteState, ServerDetailEvent, Record } from "verteilen-core";
 import { Socket } from 'socket.io';
 
 export const DetailInit = (socket:Socket, detail:ServerDetailEvent) => {
