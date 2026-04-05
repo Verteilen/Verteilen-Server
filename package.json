@@ -14,6 +14,7 @@
     },
     "scripts": {
         "dev": "ts-node scripts/dev-server.ts",
+        "dev-st": "PROJECT=\"../Verteilen\" ts-node scripts/dev-server.ts",
         "build": "tsc && ts-node scripts/build.ts",
         "docker": "sh build.sh",
         "docker:p": "sh build.sh --publish",

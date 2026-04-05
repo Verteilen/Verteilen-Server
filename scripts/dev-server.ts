@@ -13,9 +13,13 @@ let rendererMiddle:Vite.Connect.Server | undefined = undefined;
 let lock = false
 
 async function startRenderer() {
+    let p = Path.join(__dirname, '..', 'Verteilen', 'vite.config.js')
+    if(process.env.PROJECT != undefined){
+        p = Path.join(Path.resolve(process.env.PROJECT), 'vite.config.js')
+    }
     viteServer = await Vite.createServer({
         server: { middlewareMode: true, hmr: { host: "localhost", protocol: 'ws' } },
-        configFile: Path.join(__dirname, '..', 'Verteilen', 'vite.config.js'),
+        configFile: p,
         mode: 'development',
     });
     return viteServer.middlewares;
