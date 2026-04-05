@@ -5,7 +5,7 @@ import path from 'path'
 import multer from 'multer'
 import bodyPreser from 'body-parser'
 import cookieParser from 'cookie-parser'
-import { DATA_FOLDER } from 'verteilen-core'
+import { BackendType, DATA_FOLDER } from 'verteilen-core'
 import { backendEvent } from './event'
 
 export const EventInit = (app: express.Express, port:number, middle?:any) => {
@@ -68,7 +68,9 @@ export const EventInit = (app: express.Express, port:number, middle?:any) => {
         }
     })
     app.get('/test', (req, res) => {
-        res.sendStatus(200)
+        res.sendStatus(200).send({
+            type: BackendType.SERVER
+        })
     })
     const apiRoute = app.route('/api')
 
