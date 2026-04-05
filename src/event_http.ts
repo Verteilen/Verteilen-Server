@@ -6,9 +6,10 @@ import multer from 'multer'
 import bodyPreser from 'body-parser'
 import cookieParser from 'cookie-parser'
 import cors from 'cors'
-import { AuthType, BackendType, DATA_FOLDER, ServerSetupRequire } from 'verteilen-core'
+import { AuthType, BackendType, CreateRootUser, DATA_FOLDER, ServerSetupRequire, UserProfile } from 'verteilen-core'
 import { backendEvent } from './event'
 import { SetupAuthSelf } from './auth'
+import { messager_log } from './debugger'
 
 export const EventInit = (app: express.Express, port:number, middle?:any) => {
     const storage = multer.memoryStorage()
@@ -79,6 +80,8 @@ export const EventInit = (app: express.Express, port:number, middle?:any) => {
     })
     app.post("/setup", (req, res) => {
         const file = path.join(os.homedir(), DATA_FOLDER, 'server.json')
+        const pa_root = path.join(os.homedir(), DATA_FOLDER)
+        const pa = path.join(pa_root, 'user')
         const p = fs.existsSync(file)
         if(p){
             res.sendStatus(503)
@@ -90,13 +93,20 @@ export const EventInit = (app: express.Express, port:number, middle?:any) => {
             return
         }
         fs.writeFileSync(file, JSON.stringify(data.setting, null, 4))
+        backendEvent.setting = data.setting
         if(data.setting.auth.auth_type == AuthType.SELF){
             if(data.root == undefined){
                 res.sendStatus(400)
                 return
             }
-            SetupAuthSelf(data.root.root_username, data.root.root_password).then(() => {
+            SetupAuthSelf(data.root.root_username, data.root.root_password).then(uuid => {
                 res.sendStatus(200)
+                const root:UserProfile = CreateRootUser()
+                root.token = uuid
+                root.name = data.root!.root_username
+                fs.writeFileSync(path.join(pa, root.token + '.json'), JSON.stringify(root, null, 2))
+                messager_log(`Login with root using username: ${data.root!.root_username} `, "Setup")
+                messager_log(`Login with root using password: ${data.root!.root_password} `, "Setup")
             })
         }
         else if(data.setting.auth.auth_type == AuthType.EXTERNAL){

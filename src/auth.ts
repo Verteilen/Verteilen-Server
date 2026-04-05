@@ -11,16 +11,18 @@ import { randomUUID } from 'crypto'
 const saltRounds = 10;
 const pair = keypair()
 
-export const SetupAuthSelf = async (username:string, password:string) => {
+export const SetupAuthSelf = async (username:string, password:string):Promise<string> => {
     const db_file = path.join(os.homedir(), DATA_FOLDER, 'auth.db')
     if(fs.existsSync(db_file)) fs.rmSync(db_file);
     const db = new sqlite3.Database(db_file)
+    const uuid = randomUUID().toString()
     db.serialize(() => {
         db.run(`
 CREATE TABLE IF NOT EXISTS users (
     id TEXT PRIMARY KEY,
     username TEXT NOT NULL UNIQUE,
-    password TEXT NOT NULL
+    password TEXT NOT NULL,
+    op INTEGER
 )
         `, (err) => {
             if (err) {
@@ -30,8 +32,26 @@ CREATE TABLE IF NOT EXISTS users (
             }
         })
         .run(`
-INSERT INTO users (id, username, password) VALUES (?, ?, ?)
-        `, [randomUUID().toString(), username, password])
+INSERT INTO users (id, username, password, op) VALUES (?, ?, ?, 0)
+        `, [uuid, username, password])
+    })
+    db.close();
+    return uuid
+}
+
+export const GetRootSelf = async (): Promise<[string, string, string] | undefined> => {
+    const db_file = path.join(os.homedir(), DATA_FOLDER, 'auth.db')
+    if(!fs.existsSync(db_file)) return undefined
+    const db = new sqlite3.Database(db_file)
+    return new Promise<[string, string, string] | undefined>((resolve, reject) => {
+        db.serialize(() => {
+            db.get("SELECT id, username, password FROM users WHERE op = ?", [0], (err, row:any) => {
+                if(err) reject(err)
+                if(!row) return resolve(undefined)
+                resolve([row.id, row.username, row.password])
+            })
+        })
+        db.close()
     })
 }
 

@@ -32,12 +32,14 @@ import {
     PluginFeedback,
     ServerDetail,
     CreateRecordIOLoader,
+    AuthType,
 } from 'verteilen-core'
 import { Loader } from './util/init/Loader'
 import { PluginInit } from './util/init/PluginInit'
 import { DetailInit } from './util/init/DetailInit'
 import { CreateIO } from './util/init/CreateIO'
 import { ModuleInit } from './util/init/ModuleInit'
+import { GetRootSelf } from './auth'
 
 export class BackendEvent extends Server implements BackendAction {
     console:ConsoleServerManager
@@ -192,36 +194,27 @@ export class BackendEvent extends Server implements BackendAction {
     //#endregion
 
     //#region Server
-    Root = (port:number) => {
+    Startup = () => {
         const pa_root = path.join(os.homedir(), DATA_FOLDER)
         const pa = path.join(pa_root, 'user')
         if(!fs.existsSync(pa)) fs.mkdirSync(pa, {recursive: true});
-        const c = fs.readdirSync(pa).length
-        if(c == 0){
-            const root:UserProfile = CreateRootUser()
-            fs.writeFileSync(path.join(pa, root.token + '.json'), JSON.stringify(root, null, 2))
-            console.log(`Login with root using: ${root.token} `)
-            console.log(`Login with root using: https://127.0.0.1:${port}/login/${root.token} `)
-        }else{
-            const files = fs.readdirSync(pa).filter(x => x.endsWith('.json'))
-            for(let file of files){
-                const user:UserProfile = JSON.parse(fs.readFileSync(path.join(pa, file)).toString())
-                if(user.type == UserType.ROOT){
-                    console.log(`Login with root using: ${user.token} `)
-                    console.log(`Login with root using: https://127.0.0.1:${port}/login/${user.token} `)
+        const server_setting = path.join(pa_root, "server.json")
+        if(fs.existsSync(server_setting)){
+            this.setting = JSON.parse(fs.readFileSync(server_setting).toString());
+            if(this.setting?.auth){
+                if(this.setting.auth.auth_type == AuthType.SELF){
+                    GetRootSelf().then(x => {
+                        if(x == undefined){
+                            messager_log("Root user does not create yet", "Startup")
+                        }else{
+                            messager_log(`Login with root using username: ${x[1]} `, "Setup")
+                            messager_log(`Login with root using password: ${x[2]} `, "Setup")
+                        }
+                    })
                 }
             }
-        }
-        const server_setting = path.join(pa_root, "server.json")
-        if(!fs.existsSync(server_setting)){
-            /**
-            this.setting = {
-                open_guest: false
-            }
-            fs.writeFileSync(server_setting, JSON.stringify(this.setting, null, 2))
-             */
         }else{
-            this.setting = JSON.parse(fs.readFileSync(server_setting).toString());
+            messager_log("Server does not finish setup process yet", "Startup")
         }
     }
 

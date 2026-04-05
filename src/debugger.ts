@@ -12,7 +12,7 @@ export const messager = (...args:Array<string | undefined>) => {}
 */
 export const messager_log = (msg:string, tag?:string) => {
     messager(msg, tag);
-    console.log(msg);
+    console.log(`[${tag}] ${msg}`);
 }
 
 /**

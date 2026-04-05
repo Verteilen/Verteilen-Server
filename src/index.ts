@@ -67,7 +67,7 @@ export const main = async (middle?:any):Promise<[express.Express | undefined, So
             httpss.listen(p, () => {
                 console.log(Chalk.greenBright(`https server run at ${p}`))
             })
-            backendEvent.Root(p)
+            backendEvent.Startup()
         }
         /**
          * WebSocket
