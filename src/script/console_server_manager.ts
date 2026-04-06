@@ -56,16 +56,4 @@ export class ConsoleServerManager {
         
         return buffer
     }
-    /**
-     * Manually remove the frontend socket
-     * @param socket Target frontend
-     */
-    Remove = (socket:Socket): void => {
-        const target = this.admins.findIndex(x => x.socket.id == socket.id)
-        if(target != -1){
-            this.admins.splice(target, 1);
-        }else{
-            this.messager_log('[Source Remove Analysis] Failed, Socket is not in record')
-        }
-    }
 }

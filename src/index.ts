@@ -15,7 +15,7 @@ import {
 import { EventInit } from './event_http'
 import { checker } from './worker_download'
 
-let wsServer: SocketServer | undefined = undefined
+let socketIOServer: SocketServer | undefined = undefined
 let app:express.Express | undefined = undefined
 let httpss:https.Server<any> | undefined = undefined
 let wss:https.Server<any> | undefined = undefined
@@ -74,24 +74,19 @@ export const main = async (middle?:any):Promise<[express.Express | undefined, So
          */
         {
             //wsServer = new ws.Server({port: p})
-            wsServer = new SocketServer(httpss, {
+            socketIOServer = new SocketServer(httpss, {
                 cors: {
                     origin: "*",
                     methods: ["GET", "POST"]
                 }
             })
             console.log(Chalk.greenBright(`websocket server run at ${p}`))
-            wsServer.on('connection', (ws) => {
+            socketIOServer.on('connection', (socket) => {
                 //const p = new eventInit(ws)
-                ws.on('open', () => {
-                    backendEvent.NewConsoleConsole(ws)
-                })
-                ws.on('close', () => {
-                    backendEvent.DropConsoleConsole(ws)
-                })
+                backendEvent.NewConsoleConsole(socket)
             })
         }
-        resolve([app, wsServer])
+        resolve([app, socketIOServer])
     })
 }
 

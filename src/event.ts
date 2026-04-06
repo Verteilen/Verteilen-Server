@@ -73,12 +73,12 @@ export class BackendEvent extends Server implements BackendAction {
      * @param socket 
      */
     NewConsoleConsole = (socket:Socket) => {
-        console.log(`New Connection ${socket.id}`)
+        messager_log(`New Connection ${socket.id}`, "event.ts | NewConsoleConsole")
         socket.on('javascript', (content: string, database: string | undefined) => this.javascript(socket, content, database))
         socket.on('message', (message:string, tag?:string) => this.message(socket, message, tag))
         socket.on('save_preference', (preference:string, token?:string) => this.save_preference(socket, preference, token))
         socket.on('load_preference', (token?:string) => this.load_preference(socket, token))
-        socket.on('setup_server', (data:ServerSetupRequire) => this.setup_server(socket, data))
+        socket.on('setup_server', (data:Header) => this.setup_server(socket, data.data))
         Loader(socket, this.current_loader.project, 'project')
         Loader(socket, this.current_loader.task, 'task')
         Loader(socket, this.current_loader.job, 'job')
@@ -90,13 +90,6 @@ export class BackendEvent extends Server implements BackendAction {
         DetailInit(socket, this.detail!)
         ModuleInit(socket, this.module_project, () => this.memory)
         return this.console.Add(socket);
-    }
-    /**
-     * Remove manager frontend instance
-     * @param socket 
-     */
-    DropConsoleConsole = (socket:Socket) => {
-        this.console.Remove(socket)
     }
 
     IsPass = (token:string) => {
@@ -161,9 +154,11 @@ export class BackendEvent extends Server implements BackendAction {
         }
     }
     private setup_server = (socket:Socket, data:ServerSetupRequire) => {
+        messager_log(`Recevied from ${socket.id}`, "event.ts | setup_server")
         const file = path.join(os.homedir(), DATA_FOLDER, 'server.json')
         const pa_root = path.join(os.homedir(), DATA_FOLDER)
         const pa = path.join(pa_root, 'user')
+        console.log(data)
         fs.writeFileSync(file, JSON.stringify(data.setting, null, 4))
         backendEvent.setting = data.setting
         if(data.setting.auth.auth_type == AuthType.SELF){
