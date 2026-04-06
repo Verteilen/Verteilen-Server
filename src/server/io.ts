@@ -3,6 +3,7 @@
 //      Share Codebase     
 //                           
 // ========================
+import { Socket } from "socket.io"
 import { 
     RecordType, 
     Shareable,
@@ -81,33 +82,33 @@ const _CreateRecordMemoryLoader = (loader:MemoryData, type:RecordType):RecordIOL
             const arr = get_array(type)
             return arr.map(x => JSON.stringify(x))
         },
-        load_all: async ():Promise<Array<string>> => {
+        load_all: async (token?:string):Promise<Array<string>> => {
             const arr = get_array(type)
             return arr.map(x => JSON.stringify(x))
         },
-        delete_all: async ():Promise<Array<string>> => {
+        delete_all: async (token?:string):Promise<Array<string>> => {
             const arr = get_array(type)
             const p = arr.splice(0, arr.length)
             return p.map(x => x.uuid)
         },
-        list_all: async ():Promise<Array<string>> => {
+        list_all: async (token?:string):Promise<Array<string>> => {
             const arr = get_array(type)
             return arr.map(x => x.uuid)
         },
-        save: async (uuid:string, data:string):Promise<boolean> => {
+        save: async (uuid:string, data:string, token?:string):Promise<boolean> => {
             const arr = get_array(type)
             const index = arr.findIndex(x => x.uuid == uuid)
             if(index != -1) arr[index] = JSON.parse(data)
             else arr.push(JSON.parse(data))
             return true
         },
-        load: async (uuid:string):Promise<string> => {
+        load: async (uuid:string, token?:string):Promise<string> => {
             const arr = get_array(type)
             const p = arr.find(x => x.uuid == uuid)
             if(p == undefined) throw new Error("Item do not exists")
             return JSON.stringify(p)
         },
-        delete: async (uuid:string):Promise<boolean> => {
+        delete: async (uuid:string, token?:string):Promise<boolean> => {
             const arr = get_array(type)
             const index = arr.findIndex(x => x.uuid == uuid)
             if(index != -1) arr.splice(index, 1)

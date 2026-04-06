@@ -1,0 +1,1 @@
+export const SERECT = process.env.SERECT ?? "aVdWN1gWTTUsAQ06aZHyyLMXo0kEJYhU"

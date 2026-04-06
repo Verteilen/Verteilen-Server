@@ -13,8 +13,9 @@ export const EventInit = (app: express.Express, middle?:any) => {
     app.use(cors());
     console.log("current dir: ", process.cwd())
 
-    const apiRoute = app.all('/api')
-    Register_API(apiRoute);
+    const apiRoute = express.Router()
+    Register_API(apiRoute)
+    app.use("/api", apiRoute)
 
     app.use(middle ? middle : express.static(path.join(__dirname, 'public')))
 }

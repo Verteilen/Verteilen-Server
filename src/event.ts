@@ -1,5 +1,4 @@
 import tcpPortUsed from 'tcp-port-used'
-import * as ws from 'ws'
 import * as path from "path"
 import * as fs from "fs"
 import * as os from "os"
@@ -24,13 +23,15 @@ import {
     AuthType,
     ClientJavascript,
     ClientJobExecute,
+    ServerSetupRequire,
+    CreateRootUser,
 } from 'verteilen-core'
 import { Loader } from './util/init/Loader'
 import { PluginInit } from './util/init/PluginInit'
 import { DetailInit } from './util/init/DetailInit'
 import { CreateIO } from './util/init/CreateIO'
 import { ModuleInit } from './util/init/ModuleInit'
-import { GetRootSelf } from './auth'
+import { GetRootSelf, SetupAuthSelf } from './auth'
 import { Server } from './server/server2'
 import { ConsoleServerManager } from './script/console_server_manager'
 import { ServerDetail } from './server/detail'
@@ -73,11 +74,11 @@ export class BackendEvent extends Server implements BackendAction {
      */
     NewConsoleConsole = (socket:Socket) => {
         console.log(`New Connection ${socket.id}`)
-        socket.on('javascript', this.javascript)
-        socket.on('message', this.message)
-        socket.on('load_record_obsolete', this.load_record_obsolete)
-        socket.on('save_preference', this.save_preference)
-        socket.on('load_preference', this.load_preference)
+        socket.on('javascript', (content: string, database: string | undefined) => this.javascript(socket, content, database))
+        socket.on('message', (message:string, tag?:string) => this.message(socket, message, tag))
+        socket.on('save_preference', (preference:string, token?:string) => this.save_preference(socket, preference, token))
+        socket.on('load_preference', (token?:string) => this.load_preference(socket, token))
+        socket.on('setup_server', (data:ServerSetupRequire) => this.setup_server(socket, data))
         Loader(socket, this.current_loader.project, 'project')
         Loader(socket, this.current_loader.task, 'task')
         Loader(socket, this.current_loader.job, 'job')
@@ -105,7 +106,7 @@ export class BackendEvent extends Server implements BackendAction {
     }
 
     //#region Manager Side
-    private javascript = (socket:ws.WebSocket, content:string, database:string | undefined) => {
+    private javascript = (socket:Socket, content:string, database:string | undefined) => {
         const javascript_messager_feedback = (msg:string, tag?:string) => {
             messager(msg, tag)
             const d:Header = {
@@ -134,20 +135,10 @@ export class BackendEvent extends Server implements BackendAction {
             javascript_messager_feedback(x, "Finish")
         })
     }
-    private message = (socket:ws.WebSocket, message:string, tag?:string) => {
+    private message = (socket:Socket, message:string, tag?:string) => {
         console.log(`${ tag == undefined ? '[Electron Backend]' : '[' + tag + ']' } ${message}`);
     }
-    private load_record_obsolete = (socket:ws.WebSocket, dummy: number) => {
-        if(!fs.existsSync('record.json')) return undefined
-        const data = fs.readFileSync('record.json').toString()
-        fs.rmSync('record.json')
-        const d:Header = {
-            name: "load_record_obsolete-feedback",
-            data: data
-        }
-        socket.send(JSON.stringify(d))
-    }
-    private save_preference = (socket:ws.WebSocket, preference:string, token?:string) => {
+    private save_preference = (socket:Socket, preference:string, token?:string) => {
         const pa = path.join(os.homedir(), DATA_FOLDER, "user")
         if(!fs.existsSync(pa)) fs.mkdirSync(pa, {recursive: true})
         if(token != undefined){
@@ -157,7 +148,7 @@ export class BackendEvent extends Server implements BackendAction {
             fs.writeFileSync(target, JSON.stringify(p, null, 4))
         }
     }
-    private load_preference = (socket:ws.WebSocket, token?:string) => {
+    private load_preference = (socket:Socket, token?:string) => {
         const pa = path.join(os.homedir(), DATA_FOLDER, "user")
         if(!fs.existsSync(pa)) fs.mkdirSync(pa, {recursive: true})
         if(token != undefined){
@@ -167,6 +158,30 @@ export class BackendEvent extends Server implements BackendAction {
                 const d:Header = { name: "load_preference-feedback", data: JSON.stringify(p.preference) }
                 socket.send(JSON.stringify(d))
             }
+        }
+    }
+    private setup_server = (socket:Socket, data:ServerSetupRequire) => {
+        const file = path.join(os.homedir(), DATA_FOLDER, 'server.json')
+        const pa_root = path.join(os.homedir(), DATA_FOLDER)
+        const pa = path.join(pa_root, 'user')
+        fs.writeFileSync(file, JSON.stringify(data.setting, null, 4))
+        backendEvent.setting = data.setting
+        if(data.setting.auth.auth_type == AuthType.SELF){
+            SetupAuthSelf(data.root.root_username, data.root.root_password).then(uuid => {
+                socket.emit("setup_server-feedback", 0)
+                const root:UserProfile = CreateRootUser()
+                root.token = uuid
+                root.name = data.root!.root_username
+                fs.writeFileSync(path.join(pa, root.token + '.json'), JSON.stringify(root, null, 2))
+                messager_log(`Login with root using username: ${data.root!.root_username} `, "Setup")
+                messager_log(`Login with root using password: ${data.root!.root_password} `, "Setup")
+            })
+        }
+        else if(data.setting.auth.auth_type == AuthType.EXTERNAL){
+            
+        }
+        else if(data.setting.auth.auth_type == AuthType.SERVICE){
+            
         }
     }
 

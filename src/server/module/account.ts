@@ -9,7 +9,7 @@
 //
 import jwt from 'jsonwebtoken'
 import { RecordLoader } from '../io'
-import { MemoryData, JWT, SERECT, UserProfile } from 'verteilen-core'
+import { MemoryData, JWT, UserProfile } from 'verteilen-core'
 
 export class Account_Module {
     loader:RecordLoader
