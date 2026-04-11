@@ -62,8 +62,12 @@ export const Register_API = (app: express.Router) => {
             res.sendStatus(200)
         }
     })
-    app.get('/login', (req, res) => {
-        
+    app.post('/login', (req, res) => {
+        const username = req.body.username
+        const password = req.body.password
+
+        const p = path.join(os.homedir(), DATA_FOLDER, 'user', token)
+        if(!fs.existsSync(p)) fs.mkdirSync(p, {recursive: true})
     })
     app.get('/test', (req, res) => {
         const target = path.join(os.homedir(), DATA_FOLDER, 'server.json')
