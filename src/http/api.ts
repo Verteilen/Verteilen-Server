@@ -2,10 +2,8 @@ import * as fs from 'fs'
 import path from 'path'
 import os, { homedir } from 'os'
 import express from 'express'
-import { AuthType, BackendType, CreateRootUser, DATA_FOLDER, ServerSetupRequire, UserProfile } from 'verteilen-core'
+import { BackendType, DATA_FOLDER, ServerSetting } from 'verteilen-core'
 import { backendEvent } from './../event'
-import { SetupAuthSelf } from './../auth'
-import { messager_log } from './../debugger'
 import multer from 'multer'
 
 export const Register_API = (app: express.Router) => {
@@ -64,11 +62,36 @@ export const Register_API = (app: express.Router) => {
             res.sendStatus(200)
         }
     })
+    app.get('/login', (req, res) => {
+        
+    })
     app.get('/test', (req, res) => {
-        const p = fs.existsSync(path.join(os.homedir(), DATA_FOLDER, 'server.json'))
+        const target = path.join(os.homedir(), DATA_FOLDER, 'server.json')
+        const p = fs.existsSync(target)
+        let a:ServerSetting | null = null
+        if(p){
+            try{
+                a = JSON.parse(fs.readFileSync(target).toString())
+            }catch(err:any){
+                console.error(err)
+                res.sendStatus(500)
+                return
+            }
+        }
+        if(a != null){
+            delete a?.auth.api_key
+            delete a?.auth.db_username
+            delete a?.auth.db_password
+            delete a?.auth.db_url
+            delete a?.content.api_key
+            delete a?.content.db_username
+            delete a?.content.db_password
+            delete a?.content.db_url
+        }
         res.send({
             type: BackendType.SERVER,
-            setup: p
+            setup: p,
+            setting: a
         })
     })
 }
