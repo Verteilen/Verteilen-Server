@@ -1,9 +1,4 @@
-// ========================
-//                           
-//      Share Codebase     
-//                           
-// ========================
-import { RecordIOBase } from "./io";
+import { RecordIOBase } from "./io/base";
 import { 
     Header,
     DatabaseContainer,

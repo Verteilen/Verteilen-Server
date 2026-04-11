@@ -1,8 +1,3 @@
-// ========================
-//                           
-//      Share Codebase     
-//                           
-// ========================
 import { MongoClient } from "mongodb"
 import { 
     RecordType, 
@@ -15,8 +10,8 @@ import {
     MemoryData,
 } from "verteilen-core"
 import jwt from 'jsonwebtoken'
-import { RecordIOBase, RecordIOLoader, RecordLoader } from "./io"
-import { SERECT } from "../interface/config"
+import { RecordIOBase, RecordIOLoader, RecordLoader } from "./base"
+import { SERECT } from "../../interface/config"
 
 /**
  * Check if user have permission to access the container

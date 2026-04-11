@@ -3,7 +3,7 @@ import * as fs from "fs"
 import * as fsp from "fs/promises"
 import * as os from "os"
 import { DATA_FOLDER } from "verteilen-core"
-import { RecordIOBase } from "../../server/io"
+import { RecordIOBase } from "../../server/io/base"
 
 export const CreateIO = ():RecordIOBase => {
     return {

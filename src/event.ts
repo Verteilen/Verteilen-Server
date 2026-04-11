@@ -35,7 +35,7 @@ import { GetRootSelf, SetupAuthSelf } from './auth'
 import { Server } from './server/server2'
 import { ConsoleServerManager } from './script/console_server_manager'
 import { ServerDetail } from './server/detail'
-import { CreateRecordIOLoader } from './server/io2'
+import { CreateRecordIOLoader } from './server/io/file'
 import { CreatePluginLoader } from './server/plugin'
 import { PluginFeedback } from './server/server'
 
@@ -51,10 +51,9 @@ export class BackendEvent extends Server implements BackendAction {
     constructor(){
         super()
         this.io = CreateIO()
-        this.loader = CreateRecordIOLoader(this.io, this.memory)
-        const feedback:PluginFeedback = {
-            socket: undefined
-        }
+        this.loader = CreateRecordIOLoader(this.io!, this.memory)
+        const feedback:PluginFeedback = { socket: undefined }
+        
         this.LoadFromDisk()
         this.plugin_loader = CreatePluginLoader(this.io!, this.plugin, (uuid:string) => this.detail!.websocket_manager?.targets.find(x => x.uuid == uuid), feedback)
         this.plugin_loader.load_all()

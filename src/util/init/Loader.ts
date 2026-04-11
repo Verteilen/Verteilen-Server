@@ -1,5 +1,5 @@
 import { Socket } from "socket.io";
-import { RecordIOLoader } from "../../server/io";
+import { RecordIOLoader } from "../../server/io/base";
 
 export const Loader = (socket:Socket, loader:RecordIOLoader, key:string) => {
     socket.on(`load_all_${key}`, (token?:string) => loader.load_all(token))

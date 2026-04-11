@@ -1,8 +1,3 @@
-// ========================
-//                           
-//      Share Codebase     
-//                           
-// ========================
 import { ServerBase } from "./server";
 
 /**

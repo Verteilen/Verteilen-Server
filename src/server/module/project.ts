@@ -11,7 +11,7 @@
 //
 import { Socket } from "socket.io"
 import { MemoryData, Job, Project, Task } from "verteilen-core"
-import { RecordLoader } from "../io"
+import { RecordLoader } from "../io/base"
 import { ServerBase } from "../server"
 import { v6 as uuidv6 } from 'uuid'
 

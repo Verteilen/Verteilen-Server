@@ -1,15 +1,11 @@
-// ========================
-//                           
-//      Share Codebase     
-//                           
-// ========================
 import { PluginPageData, MemoryData } from "verteilen-core";
 import { ServerAdmin } from "./admin";
 import { ServerDetail } from "./detail";
-import { CreateRecordMemoryLoader_Browser, RecordIOBase, RecordLoader } from "./io";
+import { CreateRecordMemoryLoader_Browser } from "./io/memory";
 import { Project_Module } from "./module/project";
 import { PluginLoader } from "./plugin";
 import { ConsoleServerManager } from "../script/console_server_manager";
+import { RecordIOBase, RecordLoader } from "./io/base";
 
 export type Caller_Electron_Send = (channel: string, ...args: any[]) => void
 export interface Caller_Electron {

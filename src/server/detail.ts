@@ -1,11 +1,4 @@
-// ========================
-//                           
-//      Share Codebase     
-//                           
-// ========================
-//
 //  ? Detail server implementation
-//
 import { v6 as uuidv6 } from 'uuid'
 import { 
     BusAnalysis,
@@ -29,7 +22,7 @@ import {
     BackendAction,
 } from "verteilen-core"
 import { PluginFeedback } from "./server"
-import { RecordIOBase } from './io'
+import { RecordIOBase } from './io/base'
 import { receivedPack, Console_Proxy } from './detail/console_handle'
 import { Log_Proxy } from './detail/log_handle'
 import { ExecuteManager } from '../script/execute_manager'
@@ -46,7 +39,7 @@ export class ServerDetail implements NodeProxy, ServerDetailEvent {
     websocket_manager: WebsocketManager | undefined
 
     shellBind = new Map()
-    loader: RecordIOBase | undefined
+    io: RecordIOBase | undefined
     backend: BackendAction
     feedback: PluginFeedback
     message:Messager
@@ -59,13 +52,13 @@ export class ServerDetail implements NodeProxy, ServerDetailEvent {
     re: Array<any> = []
 
     constructor(
-        loader: RecordIOBase | undefined,
+        io: RecordIOBase | undefined,
         backend:BackendAction, 
         feedback:PluginFeedback, 
         message:Messager,
         messager_log:Function)
     {
-        this.loader = loader
+        this.io = io
         this.backend = backend
         this.feedback = feedback
         this.message = message
@@ -461,12 +454,12 @@ export class ServerDetail implements NodeProxy, ServerDetailEvent {
                 else if (p[0] == 'execute') this.console_execute(undefined, x.record!.uuid, p[1])
             }
         })
-        if(this.loader != undefined){
+        if(this.io != undefined){
             const logss = this.backend.memory.logs.filter(x => x.dirty && x.output)
             for(var x of logss){
                 x.dirty = false
-                const filename = this.loader.join(this.loader.root, "log", `${x.uuid}.json`)
-                this.loader.write_string(filename, JSON.stringify(x, null, 4))
+                const filename = this.io.join(this.io.root, "log", `${x.uuid}.json`)
+                this.io.write_string(filename, JSON.stringify(x, null, 4))
             }
         }
         return re
