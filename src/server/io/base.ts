@@ -40,5 +40,8 @@ export interface RecordLoader {
     node: RecordIOLoader
     log: RecordIOLoader
     lib: RecordIOLoader
+}
+
+export interface UserLoader {
     user: RecordIOLoader
 }

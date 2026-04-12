@@ -4,7 +4,7 @@ import {
     DataHeader,
     MemoryData,
 } from "verteilen-core"
-import { RecordIOLoader, RecordLoader } from "./base"
+import { RecordIOLoader, RecordLoader, UserLoader } from "./base"
 
 /**
  * **Create the interface for record memory storage**\
@@ -83,6 +83,11 @@ export const CreateRecordMemoryLoader_Browser = (loader:MemoryData):RecordLoader
         node: _CreateRecordMemoryLoader(loader, RecordType.NODE),
         log: _CreateRecordMemoryLoader(loader, RecordType.LOG),
         lib: _CreateRecordMemoryLoader(loader, RecordType.LIB),
+    }
+}
+
+export const CreateUserMemoryLoader_Browser = (loader:MemoryData):UserLoader => {
+    return {
         user: _CreateRecordMemoryLoader(loader, RecordType.USER),
     }
 }

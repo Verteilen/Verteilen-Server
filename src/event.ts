@@ -25,19 +25,20 @@ import {
     ClientJobExecute,
     ServerSetupRequire,
     CreateRootUser,
+    ServerSetupRoot,
 } from 'verteilen-core'
 import { Loader } from './util/init/Loader'
 import { PluginInit } from './util/init/PluginInit'
 import { DetailInit } from './util/init/DetailInit'
 import { CreateIO } from './util/init/CreateIO'
 import { ModuleInit } from './util/init/ModuleInit'
-import { GetRootSelf, SetupAuthSelf } from './auth'
 import { Server } from './server/server2'
 import { ConsoleServerManager } from './script/console_server_manager'
 import { ServerDetail } from './server/detail'
 import { CreateRecordIOLoader } from './server/io/file'
 import { CreatePluginLoader } from './server/plugin'
 import { PluginFeedback } from './server/server'
+import { Account_Module } from './server/module/account';
 
 export class BackendEvent extends Server implements BackendAction {
     console:ConsoleServerManager
@@ -50,12 +51,10 @@ export class BackendEvent extends Server implements BackendAction {
     
     constructor(){
         super()
-        this.io = CreateIO()
-        this.loader = CreateRecordIOLoader(this.io!, this.memory)
         const feedback:PluginFeedback = { socket: undefined }
         
         this.LoadFromDisk()
-        this.plugin_loader = CreatePluginLoader(this.io!, this.plugin, (uuid:string) => this.detail!.websocket_manager?.targets.find(x => x.uuid == uuid), feedback)
+        this.plugin_loader = CreatePluginLoader(this.io, this.plugin, (uuid:string) => this.detail!.websocket_manager?.targets.find(x => x.uuid == uuid), feedback)
         this.plugin_loader.load_all()
         this.detail = new ServerDetail(this.io, this, feedback, messager, console.log)
 
@@ -155,28 +154,9 @@ export class BackendEvent extends Server implements BackendAction {
     private setup_server = (socket:Socket, data:ServerSetupRequire) => {
         messager_log(`Recevied from ${socket.id}`, "event.ts | setup_server")
         const file = path.join(os.homedir(), DATA_FOLDER, 'server.json')
-        const pa_root = path.join(os.homedir(), DATA_FOLDER)
-        const pa = path.join(pa_root, 'user')
-        console.log(data)
         fs.writeFileSync(file, JSON.stringify(data.setting, null, 4))
-        backendEvent.setting = data.setting
-        if(data.setting.auth.auth_type == AuthType.SELF){
-            SetupAuthSelf(data.root.root_username, data.root.root_password).then(uuid => {
-                socket.emit("setup_server-feedback", 0)
-                const root:UserProfile = CreateRootUser()
-                root.token = uuid
-                root.name = data.root!.root_username
-                fs.writeFileSync(path.join(pa, root.token + '.json'), JSON.stringify(root, null, 2))
-                messager_log(`Login with root using username: ${data.root!.root_username} `, "Setup")
-                messager_log(`Login with root using password: ${data.root!.root_password} `, "Setup")
-            })
-        }
-        else if(data.setting.auth.auth_type == AuthType.EXTERNAL){
-            
-        }
-        else if(data.setting.auth.auth_type == AuthType.SERVICE){
-            
-        }
+        this.setting = data.setting
+        this.Setup_Module(socket, data.root)
     }
 
     /**
@@ -209,7 +189,7 @@ export class BackendEvent extends Server implements BackendAction {
             this.setting = JSON.parse(fs.readFileSync(server_setting).toString());
             if(this.setting?.auth){
                 if(this.setting.auth.auth_type == AuthType.SELF){
-                    GetRootSelf().then(x => {
+                    this.account_module?.get_root_self().then(x => {
                         if(x == undefined){
                             messager_log("Root user does not create yet", "Startup")
                         }else{
@@ -219,8 +199,41 @@ export class BackendEvent extends Server implements BackendAction {
                     })
                 }
             }
+            this.Setup_Module()
         }else{
             messager_log("Server does not finish setup process yet", "Startup")
+        }
+    }
+
+    Setup_Module = (socket?: Socket, root?:ServerSetupRoot) => {
+        const pa_root = path.join(os.homedir(), DATA_FOLDER)
+        const pa = path.join(pa_root, 'user')
+        if(this.setting){
+            if(this.setting.auth.auth_type == AuthType.SELF){
+                this.loader = CreateRecordIOLoader(this.io, this.memory)
+                if(socket != undefined && root != undefined){
+                    this.account_module?.setup_auth_self(root.root_username, root.root_password).then(uuid => {
+                        socket.emit("setup_server-feedback", 0)
+                        const _root:UserProfile = CreateRootUser()
+                        _root.token = uuid
+                        _root.name = root.root_username
+                        fs.writeFileSync(path.join(pa, _root.token + '.json'), JSON.stringify(root, null, 2))
+                        messager_log(`Login with root using username: ${root.root_username} `, "Setup_Module")
+                        messager_log(`Login with root using password: ${root.root_password} `, "Setup_Module")
+                    })
+                }else{
+                    this.account_module = new Account_Module(this.current_loader, this.memory)
+                }
+            }
+            else if(this.setting.auth.auth_type == AuthType.EXTERNAL){
+                
+            }
+            else if(this.setting.auth.auth_type == AuthType.SERVICE){
+                
+            }
+
+        }else{
+            messager_log("Server does not finish setup process yet", "Setup_Module")
         }
     }
 

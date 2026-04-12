@@ -10,11 +10,33 @@ export const Register_API = (app: express.Router) => {
     const storage = multer.memoryStorage()
     const upload = multer({ dest: 'public/upload', storage: storage })
 
-    app.get('/login/:token', (req, res, next) => {
-        if(req.params.token != undefined) {
-            res.cookie('token', req.params.token)
+    app.get('/login/:token', async (req, res) => {
+        if(backendEvent.account_module == undefined){
+            res.statusCode = 500
+            res.send("Account module is not setup")
+        }else{
+            backendEvent.account_module.verify(req.params.token).then(t => {
+                res.send(t)
+            }).catch((err:Error) => {
+                res.statusCode = 401
+                res.send(err)
+            })
         }
-        res.redirect('/')
+    })
+    app.post('/login', async (req, res) => {
+        if(backendEvent.account_module == undefined){
+            res.statusCode = 500
+            res.send("Account module is not setup")
+        }else{
+            const username = req.body.username
+            const password = req.body.password
+            backendEvent.account_module.login(username, password).then(t => {
+                res.send(t)
+            }).catch((err:Error) => {
+                res.statusCode = 401
+                res.send(err)
+            })
+        }
     })
     
     // The simple web response to let frontend know that backend exists
@@ -51,7 +73,6 @@ export const Register_API = (app: express.Router) => {
             res.sendStatus(403)
             return
         }
-        
         if(req.file == undefined){
             res.sendStatus(204)
         }else{
@@ -61,13 +82,6 @@ export const Register_API = (app: express.Router) => {
             fs.writeFileSync(n, req.file.buffer)
             res.sendStatus(200)
         }
-    })
-    app.post('/login', (req, res) => {
-        const username = req.body.username
-        const password = req.body.password
-
-        const p = path.join(os.homedir(), DATA_FOLDER, 'user', token)
-        if(!fs.existsSync(p)) fs.mkdirSync(p, {recursive: true})
     })
     app.get('/test', (req, res) => {
         const target = path.join(os.homedir(), DATA_FOLDER, 'server.json')
