@@ -1,11 +1,12 @@
 import { PluginPageData, MemoryData } from "verteilen-core";
 import { ServerAdmin } from "./admin";
 import { ServerDetail } from "./detail";
-import { CreateRecordMemoryLoader_Browser, CreateUserMemoryLoader_Browser } from "./io/memory";
+import { CreateRecordMemoryLoader_Browser } from "./io/memory";
 import { Project_Module } from "./module/project";
 import { PluginLoader } from "./plugin";
 import { ConsoleServerManager } from "../script/console_server_manager";
-import { RecordIOBase, RecordLoader, UserLoader } from "./io/base";
+import { RecordIOBase, RecordLoader } from "./io/base";
+import { AuthLoader } from "./auth/base";
 import { CreateIO } from "../util/init/CreateIO";
 
 export type Caller_Electron_Send = (channel: string, ...args: any[]) => void
@@ -50,12 +51,11 @@ export class ServerBase {
      * Disk or cloud loader for the database
      */
     loader:RecordLoader | undefined = undefined
-    uloader:UserLoader | undefined = undefined
+    uloader:AuthLoader | undefined = undefined
     /**
      * In memory loader for the database
      */
     memory_loader:RecordLoader
-    memory_uloader:UserLoader
     plugin_loader: PluginLoader | undefined = undefined
     detail: ServerDetail | undefined
     admin: ServerAdmin | undefined = undefined
@@ -65,7 +65,6 @@ export class ServerBase {
     constructor() {
         this.io = CreateIO()
         this.memory_loader = CreateRecordMemoryLoader_Browser(this.memory)
-        this.memory_uloader = CreateUserMemoryLoader_Browser(this.memory)
         this.module_project = new Project_Module(this)
     }
 
@@ -74,9 +73,8 @@ export class ServerBase {
         return this.memory_loader
     }
 
-    public get current_uloader() : UserLoader {
-        if(this.uloader) return this.uloader
-        return this.memory_uloader
+    public get current_uloader() : AuthLoader | undefined {
+        return this.uloader
     }
 
     /**
@@ -92,7 +90,7 @@ export class ServerBase {
             this.current_loader.node.fetch_all(),
             this.current_loader.log.fetch_all(),
             this.current_loader.lib.fetch_all(),
-            this.current_uloader.user.fetch_all(),
+            this.current_loader.user.fetch_all(),
         ]
         return Promise.all(ts)
     }

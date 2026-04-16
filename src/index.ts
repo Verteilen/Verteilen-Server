@@ -53,7 +53,7 @@ const get_pem = ():Promise<[string, string]> => {
  */
 export const main = async (middle?:any):Promise<[express.Express | undefined, SocketServer | undefined]> => {
     // Check worker.exe existance
-    await checker()
+    // await checker()
     return new Promise<[express.Express | undefined, SocketServer | undefined]>(async (resolve) => {
         const p = await webport
         /**
