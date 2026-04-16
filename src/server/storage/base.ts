@@ -11,13 +11,36 @@ export interface RecordIOLoader<T extends DataHeader & Shareable> {
     init: () => Promise<boolean>
     /**
      * Loading all data from storage
-     * @param token User token
      */
     load_all: (token?:string) => Promise<Array<T>>
+    /**
+     * Clear the database
+     * @returns The data from deleting
+     */
     delete_all: (token?:string) => Promise<Array<T>>
-    list_all: (token?:string) => Promise<Array<T>>
+    /**
+     * Fetch all the uuid from storage
+     * @returns UUID list
+     */
+    list_all: (token?:string) => Promise<Array<string>>
+    /**
+     * Save data to storage
+     * @param uuid Target uuid
+     * @param data data instance
+     * @returns Successfully
+     */
     save: (uuid:string, data:T, token?:string) => Promise<boolean>
+    /**
+     * Loading data from storage
+     * @param uuid Target uuid
+     * @returns Data instance
+     */
     load: (uuid:string, token?:string) => Promise<T>
+    /**
+     * Deleting data from storage
+     * @param uuid Target uuid
+     * @returns Successfully
+     */
     delete: (uuid:string, token?:string) => Promise<boolean>
 }
 /**

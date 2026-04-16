@@ -46,6 +46,12 @@ const permissionGetPublic = (v:Array<Shareable & DataHeader>):Array<Shareable & 
     return v.filter(x => x.owner == undefined || x.acl == ACLType.PUBLIC)
 }
 
+/**
+ * Get simple generic array from memory loader
+ * @param loader The memory loader instance
+ * @param type Storage type
+ * @returns The generic array in the memory loader
+ */
 const getArrayFromMemory = (loader:MemoryData, type:RecordType):Array<Shareable & DataHeader> => {
     switch(type){
         default:
@@ -161,10 +167,10 @@ export const _CreateRecordMemoryLoader = <T extends DataHeader & Shareable>(load
                 })
             })
         },
-        save: async (uuid:string, data:string, token?:string):Promise<boolean> => {
+        save: async (uuid:string, data:T, token?:string):Promise<boolean> => {
             return new Promise<boolean>((resolve, reject) => {
-                const buffer:Shareable & DataHeader = JSON.parse(data)
-                const arr = get_array(type)
+                const buffer:Shareable & DataHeader = data
+                const arr = getArrayFromMemory(loader, type)
                 const index = arr.findIndex(x => x.uuid == uuid)
                 const exist = index == -1 ? undefined : arr[index]
                 const ispublic = exist?.owner == undefined || exist?.acl == ACLType.PUBLIC
@@ -214,9 +220,9 @@ export const _CreateRecordMemoryLoader = <T extends DataHeader & Shareable>(load
                 })
             })
         },
-        load: async (uuid:string, token?:string):Promise<string> => {
-            return new Promise<string>((resolve, reject) => {
-                const arr = get_array(type)
+        load: async (uuid:string, token?:string):Promise<T> => {
+            return new Promise<T>((resolve, reject) => {
+                const arr = getArrayFromMemory(loader, type)
                 const index = arr.findIndex(x => uuid == x.uuid)
                 const exist = index == -1 ? undefined : arr[index]
                 if(exist == undefined){
@@ -225,7 +231,7 @@ export const _CreateRecordMemoryLoader = <T extends DataHeader & Shareable>(load
                 }
                 const ispublic = exist.owner == undefined || exist.acl == ACLType.PUBLIC
                 if(ispublic){
-                    resolve(JSON.stringify(exist))
+                    resolve(exist as T)
                     return
                 }
 
@@ -245,7 +251,7 @@ export const _CreateRecordMemoryLoader = <T extends DataHeader & Shareable>(load
                     }
                     const payload:JWT = JSON.parse(decode.payload as string)
                     if(permissionHelper(exist, payload.user)){
-                        resolve(JSON.stringify(exist))
+                        resolve(exist as T)
                     }else{
                         reject("Permission Denied")
                     }
@@ -254,7 +260,7 @@ export const _CreateRecordMemoryLoader = <T extends DataHeader & Shareable>(load
         },
         delete: async (uuid:string, token?:string):Promise<boolean> => {
             return new Promise<boolean>((resolve, reject) => {
-                const arr = get_array(type)
+                const arr = getArrayFromMemory(loader, type)
                 const index = arr.findIndex(x => uuid == x.uuid)
                 const exist = index == -1 ? undefined : arr[index]
                 const default_behaviour = () => {
