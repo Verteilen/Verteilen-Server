@@ -1,10 +1,18 @@
 import { 
     RecordType, 
     MemoryData,
+    DataHeader,
+    Shareable,
 } from "verteilen-core"
 import { RecordIOLoader, RecordLoader } from "./base"
 import { IOBase } from "../io/base"
 import { _CreateRecordMemoryLoader } from "./memory"
+
+const folder_root_helper = async (loader:IOBase, folder:string) => {
+    const root = loader.join(loader.root, folder)
+    if(!loader.exists(root)) await loader.mkdir(root);
+    return root
+}
 
 /**
  * **Create the interface for record files storage**\
@@ -16,26 +24,14 @@ import { _CreateRecordMemoryLoader } from "./memory"
  * @param ext Store file extension
  * @returns Interface for calling
  */
-const _CreateRecordIOLoader = (loader:IOBase, memory:MemoryData, type:RecordType, folder:string, ext:string = ".json"):RecordIOLoader => {
-    const mem = _CreateRecordMemoryLoader(memory, type)
+const _CreateRecordIOLoader = <T extends DataHeader & Shareable>(loader:IOBase, memory:MemoryData, type:RecordType, folder:string, ext:string = ".json"):RecordIOLoader<T> => {
+    const mem:RecordIOLoader<T> = _CreateRecordMemoryLoader(memory, type)
     return {
-        fetch_all: async ():Promise<Array<string>> => {
-            const root = loader.join(loader.root, folder)
-            if(!loader.exists(root)) await loader.mkdir(root)
-
-            const files = await loader.read_dir_file(root)
-            const r:Array<Promise<string>> = files.map(x => 
-                loader.read_string(loader.join(root, x), { encoding: 'utf8', flag: 'r' })
-            )
-            const p = await Promise.all(r)
-            const saver = p.map(x => {
-                const data = JSON.parse(x)
-                return mem.save(data.uuid, x)
-            })
-            await Promise.all(saver)
-            return mem.fetch_all()
+        init: async ():Promise<boolean> => {
+            await folder_root_helper(loader, folder)
+            return mem.init()
         },
-        load_all: async (token?:string):Promise<Array<string>> => {
+        load_all: async (token?:string):Promise<Array<T>> => {
             const root = loader.join(loader.root, folder)
             if(!loader.exists(root)) await loader.mkdir(root)
             return mem.load_all(token)
