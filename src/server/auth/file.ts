@@ -1,7 +1,9 @@
-import { MemoryData, RecordType, Login, CodeError } from "verteilen-core"
+import jwt from 'jsonwebtoken'
+import { Login, CodeError, JWT } from "verteilen-core"
 import { IOBase } from "../io"
 import { AuthIOLoader, AuthLoader } from "./base"
 import { v4 as uuidv4 } from 'uuid'
+import { EXPIRE, SERECT } from '../../interface/config'
 
 const folder_root_helper = async (loader:IOBase, folder:string) => {
     const root = loader.join(loader.root, folder)
@@ -85,9 +87,48 @@ const _CreateRecordIOLoader = (loader:IOBase, folder:string, ext:string = ".json
         },
         login: async (username: string, password: string): Promise<string> => {
             const root = await folder_root_helper(loader, folder)
+            const files = await loader.read_dir_file(root)
+            for(let file of files){
+                const filepath = loader.join(root, file)
+                const str = await loader.read_string(filepath)
+                const data:Login = JSON.parse(str)
+                if(data.username == username){
+                    if(data.password == password){
+                        const payload:JWT = { 
+                            user: data.uuid,
+                            create: Date.now(),
+                            expire: Date.now() + EXPIRE
+                        }
+                        const token = jwt.sign(JSON.stringify(payload), SERECT, { algorithm: 'RS256'})
+                        return token;
+                    }else{
+                        throw new CodeError("Password wrong", 1)
+                    }
+                }
+            }
+            throw new CodeError("Cannot find username", 2)
         },
         verify: async (token: string): Promise<string> => {
             const root = await folder_root_helper(loader, folder)
+            const payload:JWT = JSON.parse(jwt.verify(token, SERECT, { algorithms: ['RS256'] }).toString())
+            if(Date.now() < payload.expire){ // Pass
+                const files = await loader.read_dir_file(root)
+                for(let file of files){
+                    const filepath = loader.join(root, file)
+                    const str = await loader.read_string(filepath)
+                    const data:Login = JSON.parse(str)
+                    if(data.uuid == payload.user){
+                        payload.create = Date.now()
+                        payload.expire = Date.now() + EXPIRE
+                        const a = jwt.sign(JSON.stringify(payload), SERECT, { algorithm: 'RS256'})
+                        return a
+                    }
+                }
+                throw new CodeError("Cannot find user by UUID from JWT", 2)
+            }else{
+                // Expire
+                throw new CodeError("Token expire", 1)
+            }
         }
     }
 }

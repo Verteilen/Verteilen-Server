@@ -17,7 +17,7 @@ import sqlite3 from 'sqlite3'
 import { randomUUID } from 'crypto'
 import { RecordLoader } from '../io/base'
 import { MemoryData, JWT, UserProfile, DATA_FOLDER } from 'verteilen-core'
-import { SERECT } from '../../interface/config'
+import { EXPIRE, SERECT } from '../../interface/config'
 
 const saltRounds = 10;
 const pair = keypair()
@@ -140,7 +140,7 @@ export class Account_Module {
             const payload:JWT = { 
                 user: target.uuid,
                 create: Date.now(),
-                expire: Date.now() + (7 * 24 * 60 * 60 * 1000)
+                expire: Date.now() + EXPIRE
             }
             const token = jwt.sign(JSON.stringify(payload), SERECT, { algorithm: 'RS256'})
             return token
