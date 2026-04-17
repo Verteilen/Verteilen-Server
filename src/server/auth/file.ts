@@ -3,6 +3,12 @@ import { IOBase } from "../io"
 import { AuthIOLoader, AuthLoader } from "./base"
 import { v4 as uuidv4 } from 'uuid'
 
+const folder_root_helper = async (loader:IOBase, folder:string) => {
+    const root = loader.join(loader.root, folder)
+    if(!loader.exists(root)) await loader.mkdir(root);
+    return root
+}
+
 /**
  * **Create the interface for record files storage**\
  * Generate a loader interface for register to server event
@@ -16,14 +22,11 @@ import { v4 as uuidv4 } from 'uuid'
 const _CreateRecordIOLoader = (loader:IOBase, folder:string, ext:string = ".json"):AuthIOLoader => {
     return {
         init: async ():Promise<boolean> => {
-            const root = loader.join(loader.root, folder)
-            if(!loader.exists(root)) await loader.mkdir(root);
+            await folder_root_helper(loader, folder)
             return true
         },
         create: async (username: string, password: string):Promise<string> => {
-            const root = loader.join(loader.root, folder)
-            if(!loader.exists(root)) await loader.mkdir(root);
-
+            const root = await folder_root_helper(loader, folder)
             const allusers = await loader.read_dir_file(root)
             const get_data:Promise<string>[] = []
             for(let u of allusers){
@@ -57,8 +60,7 @@ const _CreateRecordIOLoader = (loader:IOBase, folder:string, ext:string = ".json
             return uuid
         },
         delete: async (uuid:string): Promise<void> => {
-            const root = loader.join(loader.root, folder)
-            if(!loader.exists(root)) await loader.mkdir(root);
+            const root = await folder_root_helper(loader, folder)
 
             const file = loader.join(root, uuid + ext)
             if(!loader.exists(file)) {
@@ -67,13 +69,25 @@ const _CreateRecordIOLoader = (loader:IOBase, folder:string, ext:string = ".json
             return loader.rm(file)
         },
         pwd_change: async (username: string, password: string): Promise<string> => {
-            
+            const root = await folder_root_helper(loader, folder)
+            const files = await loader.read_dir_file(root)
+            for(let file of files){
+                const filepath = loader.join(root, file)
+                const str = await loader.read_string(filepath)
+                const data:Login = JSON.parse(str)
+                if(data.username == username){
+                    data.password = password;
+                    await loader.write_string(filepath, JSON.stringify(data, null, 4))
+                    return data.uuid
+                }
+            }
+            throw new CodeError("Cannot find username: " + username, 1)
         },
         login: async (username: string, password: string): Promise<string> => {
-            
+            const root = await folder_root_helper(loader, folder)
         },
         verify: async (token: string): Promise<string> => {
-
+            const root = await folder_root_helper(loader, folder)
         }
     }
 }
