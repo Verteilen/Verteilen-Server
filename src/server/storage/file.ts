@@ -6,7 +6,7 @@ import {
 } from "verteilen-core"
 import { RecordIOLoader, RecordLoader } from "./base"
 import { IOBase } from "../io/base"
-import { _CreateRecordMemoryLoader } from "./memory"
+import { _CreateRecordMemoryLoader, getArrayFromMemory } from "./memory"
 
 const folder_root_helper = async (loader:IOBase, folder:string) => {
     const root = loader.join(loader.root, folder)
@@ -32,11 +32,24 @@ const _CreateRecordIOLoader = <T extends DataHeader & Shareable>(loader:IOBase, 
             return mem.init()
         },
         load_all: async (token?:string):Promise<Array<T>> => {
-            const root = loader.join(loader.root, folder)
-            if(!loader.exists(root)) await loader.mkdir(root)
-            return mem.load_all(token)
+            const root = await folder_root_helper(loader, folder)
+            const files = await loader.read_dir_file(root)
+            const a:Array<Promise<T>> = []
+            for(let f of files){
+                a.push(new Promise<T>(async (resolve) => {
+                    const te = await loader.read_string(loader.join(root, f))
+                    resolve(JSON.parse(te) as T)
+                })) 
+            }
+            const a1:Array<T> = (await Promise.all(a) as Array<T>)
+
+            await mem.delete_all();
+            for(let f of a1){
+                await mem.save(f.uuid, f, token)
+            }
+            return a1
         },
-        delete_all: async (token?:string):Promise<Array<string>> => {
+        delete_all: async (token?:string):Promise<Array<T>> => {
             const root = loader.join(loader.root, folder)
             // Memory action
             const c = await mem.delete_all(token)
@@ -48,11 +61,11 @@ const _CreateRecordIOLoader = <T extends DataHeader & Shareable>(loader:IOBase, 
             return c
         },
         list_all: async (token?:string):Promise<Array<string>> => {
-            const root = loader.join(loader.root, folder)
-            if(!loader.exists(root)) await loader.mkdir(root)
-            return mem.list_all(token)
+            const root = await folder_root_helper(loader, folder)
+            const files = await loader.read_dir_file(root)
+            return files.map(x => x.replace(ext, ''))
         },
-        save: async (uuid:string, data:string, token?:string):Promise<boolean> => {
+        save: async (uuid:string, data:T, token?:string):Promise<boolean> => {
             const root = loader.join(loader.root, folder)
             if(!loader.exists(root)) await loader.mkdir(root)
             const r = await mem.save(uuid, data, token)
@@ -62,7 +75,7 @@ const _CreateRecordIOLoader = <T extends DataHeader & Shareable>(loader:IOBase, 
             await loader.write_string(file, data)
             return true
         },
-        load: async (uuid:string, token?:string):Promise<string> => {
+        load: async (uuid:string, token?:string):Promise<T> => {
             const root = loader.join(loader.root, folder)
             if(!loader.exists(root)) await loader.mkdir(root)
             

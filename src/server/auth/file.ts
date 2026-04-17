@@ -1,5 +1,5 @@
 import { MemoryData, RecordType, Login, CodeError } from "verteilen-core"
-import { RecordIOBase } from "../io"
+import { IOBase } from "../io"
 import { AuthIOLoader, AuthLoader } from "./base"
 import { v4 as uuidv4 } from 'uuid'
 
@@ -13,7 +13,7 @@ import { v4 as uuidv4 } from 'uuid'
  * @param ext Store file extension
  * @returns Interface for calling
  */
-const _CreateRecordIOLoader = (loader:RecordIOBase, folder:string, ext:string = ".json"):AuthIOLoader => {
+const _CreateRecordIOLoader = (loader:IOBase, folder:string, ext:string = ".json"):AuthIOLoader => {
     return {
         init: async ():Promise<boolean> => {
             const root = loader.join(loader.root, folder)
@@ -85,7 +85,7 @@ const _CreateRecordIOLoader = (loader:RecordIOBase, folder:string, ext:string = 
  * @param user should include user
  * @returns Interface for server calling
  */
-export const CreateAuthRecordIOLoader = (loader:RecordIOBase):AuthLoader => {
+export const CreateAuthRecordIOLoader = (loader:IOBase):AuthLoader => {
     return {
         auth: _CreateRecordIOLoader(loader, "auth"),
     }

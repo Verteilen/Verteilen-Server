@@ -25,7 +25,7 @@ import jwt from 'jsonwebtoken'
  * @param uuid User UUID
  * @returns Access right
  */
-const permissionHelper = (x:Shareable & DataHeader, uuid:string):boolean => {
+export const permissionHelper = (x:Shareable & DataHeader, uuid:string):boolean => {
     const ispublic = x.owner == undefined || x.acl == ACLType.PUBLIC
     if(ispublic) return true
     const isowner = x.owner == uuid
@@ -42,7 +42,7 @@ const permissionHelper = (x:Shareable & DataHeader, uuid:string):boolean => {
  * @param v The list of container
  * @returns Result of filter
  */
-const permissionGetPublic = (v:Array<Shareable & DataHeader>):Array<Shareable & DataHeader> => {
+export const permissionGetPublic = (v:Array<Shareable & DataHeader>):Array<Shareable & DataHeader> => {
     return v.filter(x => x.owner == undefined || x.acl == ACLType.PUBLIC)
 }
 
@@ -52,7 +52,7 @@ const permissionGetPublic = (v:Array<Shareable & DataHeader>):Array<Shareable & 
  * @param type Storage type
  * @returns The generic array in the memory loader
  */
-const getArrayFromMemory = (loader:MemoryData, type:RecordType):Array<Shareable & DataHeader> => {
+export const getArrayFromMemory = (loader:MemoryData, type:RecordType):Array<Shareable & DataHeader> => {
     switch(type){
         default:
         case RecordType.PROJECT: return loader.projects
