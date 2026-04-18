@@ -6,7 +6,7 @@ import {
 } from "verteilen-core"
 import { RecordIOLoader, RecordLoader } from "./base"
 import { IOBase } from "../io/base"
-import { _CreateRecordMemoryLoader, getArrayFromMemory } from "./memory"
+import { _CreateRecordMemoryLoader } from "./memory"
 
 const folder_root_helper = async (loader:IOBase, folder:string) => {
     const root = loader.join(loader.root, folder)
@@ -81,9 +81,10 @@ const _CreateRecordIOLoader = <T extends DataHeader & Shareable>(loader:IOBase, 
             
             const file = loader.join(root, uuid + ext)
             const str = await loader.read_string(file, { encoding: 'utf8', flag: 'r' })
-            const r = mem.save(uuid, str)
+            const d:T = JSON.parse(str)
+            const r = mem.save(uuid, d)
             if(!r) throw new Error(`load memory failed: ${type} ${uuid}`)
-            return str
+            return d
         },
         delete: async (uuid:string, token?:string):Promise<boolean> => {
             const root = loader.join(loader.root, folder)

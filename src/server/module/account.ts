@@ -15,7 +15,7 @@ import jwt from 'jsonwebtoken'
 import keypair from 'keypair'
 import sqlite3 from 'sqlite3'
 import { randomUUID } from 'crypto'
-import { RecordLoader } from '../io/base'
+import { RecordLoader } from '../storage/base'
 import { MemoryData, JWT, UserProfile, DATA_FOLDER } from 'verteilen-core'
 import { EXPIRE, SERECT } from '../../interface/config'
 
@@ -77,7 +77,7 @@ export class Account_Module {
     
     verify = async (old:string):Promise<string> => {
         const data = await this.loader.user.load_all()
-        const users:Array<UserProfile> = data.map(x => JSON.parse(x))
+        const users:Array<UserProfile> = data.map(x => x)
         const payload:JWT = JSON.parse(jwt.verify(old, SERECT, { algorithms: ['RS256'] }).toString())
         const current = Date.now()
         if(current < payload.expire){ // Pass
@@ -134,7 +134,7 @@ export class Account_Module {
      */
     login = async (username:string, password:string):Promise<string> => {
         const data = await this.loader.user.load_all()
-        const users:Array<UserProfile> = data.map(x => JSON.parse(x))
+        const users:Array<UserProfile> = data.map(x => x)
         const target = users.find(x => x.name == username && x.password == password)
         if(target != undefined){
             const payload:JWT = { 

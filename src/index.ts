@@ -65,7 +65,7 @@ export const main = async (middle?:any):Promise<[express.Express | undefined, So
             httpss = https.createServer({ key: pems[0], cert: pems[1], minVersion: 'TLSv1.2', maxVersion: 'TLSv1.3' }, app)
             EventInit(app, middle)
             httpss.listen(p, () => {
-                console.log(Chalk.greenBright(`https server run at ${p}`))
+                console.log(Chalk.greenBright(`https server run at https://127.0.0.1:${p}`))
             })
             backendEvent.Startup()
         }
@@ -80,7 +80,6 @@ export const main = async (middle?:any):Promise<[express.Express | undefined, So
                     methods: ["GET", "POST"]
                 }
             })
-            console.log(Chalk.greenBright(`websocket server run at ${p}`))
             socketIOServer.on('connection', (socket) => {
                 //const p = new eventInit(ws)
                 backendEvent.NewConsoleConsole(socket)
