@@ -1,4 +1,4 @@
-import { RecordIOBase } from "./io/base";
+import { IOBase } from "./io";
 import { 
     Header,
     DatabaseContainer,
@@ -77,7 +77,7 @@ export interface PluginLoader {
  * @param loader The file io loader
  * @returns Current list in disk storage
  */
-export const GetCurrentPlugin = async (loader:RecordIOBase):Promise<PluginPageData> => {
+export const GetCurrentPlugin = async (loader:IOBase):Promise<PluginPageData> => {
     return new Promise<PluginPageData>(async (resolve) => {
         const b:PluginPageData = {
             plugins: []
@@ -122,7 +122,7 @@ export const GetCurrentPlugin = async (loader:RecordIOBase):Promise<PluginPageDa
     })
 }
 
-export const CreatePluginLoader = (loader:RecordIOBase, memory:PluginPageData, socket:SocketGetter, feedback:PluginFeedback):PluginLoader => {
+export const CreatePluginLoader = (loader:IOBase, memory:PluginPageData, socket:SocketGetter, feedback:PluginFeedback):PluginLoader => {
     return {
         load_all: async ():Promise<void> => {
             const cp = await GetCurrentPlugin(loader)

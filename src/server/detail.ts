@@ -22,7 +22,7 @@ import {
     BackendAction,
 } from "verteilen-core"
 import { PluginFeedback } from "./server"
-import { RecordIOBase } from './io/base'
+import { IOBase } from './io'
 import { receivedPack, Console_Proxy } from './detail/console_handle'
 import { Log_Proxy } from './detail/log_handle'
 import { ExecuteManager } from '../script/execute_manager'
@@ -39,7 +39,7 @@ export class ServerDetail implements NodeProxy, ServerDetailEvent {
     websocket_manager: WebsocketManager | undefined
 
     shellBind = new Map()
-    io: RecordIOBase | undefined
+    io: IOBase | undefined
     backend: BackendAction
     feedback: PluginFeedback
     message:Messager
@@ -52,7 +52,7 @@ export class ServerDetail implements NodeProxy, ServerDetailEvent {
     re: Array<any> = []
 
     constructor(
-        io: RecordIOBase | undefined,
+        io: IOBase | undefined,
         backend:BackendAction, 
         feedback:PluginFeedback, 
         message:Messager,
