@@ -30,12 +30,11 @@ import {
 import { Loader } from './util/init/Loader'
 import { PluginInit } from './util/init/PluginInit'
 import { DetailInit } from './util/init/DetailInit'
-import { CreateIO } from './util/init/CreateIO'
 import { ModuleInit } from './util/init/ModuleInit'
 import { Server } from './server/server2'
 import { ConsoleServerManager } from './script/console_server_manager'
 import { ServerDetail } from './server/detail'
-import { CreateRecordIOLoader } from './server/io/file'
+import { CreateRecordFileLoader } from './server/storage/file'
 import { CreatePluginLoader } from './server/plugin'
 import { PluginFeedback } from './server/server'
 import { Account_Module } from './server/module/account';
@@ -210,7 +209,7 @@ export class BackendEvent extends Server implements BackendAction {
         const pa = path.join(pa_root, 'user')
         if(this.setting){
             if(this.setting.auth.auth_type == AuthType.SELF){
-                this.loader = CreateRecordIOLoader(this.io, this.memory)
+                this.loader = CreateRecordFileLoader(this.io, this.memory)
                 if(socket != undefined && root != undefined){
                     this.account_module?.setup_auth_self(root.root_username, root.root_password).then(uuid => {
                         socket.emit("setup_server-feedback", 0)

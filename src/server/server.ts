@@ -1,13 +1,13 @@
 import { PluginPageData, MemoryData } from "verteilen-core";
 import { ServerAdmin } from "./admin";
 import { ServerDetail } from "./detail";
-import { CreateRecordMemoryLoader_Browser } from "./io/memory";
+import { CreateRecordMemoryLoader } from "./storage/memory";
 import { Project_Module } from "./module/project";
 import { PluginLoader } from "./plugin";
 import { ConsoleServerManager } from "../script/console_server_manager";
-import { RecordIOBase, RecordLoader } from "./io/base";
+import { RecordLoader } from "./storage/base";
 import { AuthLoader } from "./auth/base";
-import { CreateIO } from "../util/init/CreateIO";
+import { CreateIO, IOBase } from "./io";
 
 export type Caller_Electron_Send = (channel: string, ...args: any[]) => void
 export interface Caller_Electron {
@@ -46,7 +46,7 @@ export class ServerBase {
     /**
      * A simple object communicate with server disk storage
      */
-    io:RecordIOBase
+    io:IOBase
     /**
      * Disk or cloud loader for the database
      */
@@ -64,7 +64,7 @@ export class ServerBase {
 
     constructor() {
         this.io = CreateIO()
-        this.memory_loader = CreateRecordMemoryLoader_Browser(this.memory)
+        this.memory_loader = CreateRecordMemoryLoader(this.memory)
         this.module_project = new Project_Module(this)
     }
 
@@ -81,16 +81,16 @@ export class ServerBase {
      * **Data: Memory**\
      * Load every type of data from disk, store them into memory
      */
-    LoadFromDisk = ():Promise<Array<Array<string>>> => {
+    LoadFromDisk = ():Promise<Array<boolean>> => {
         const ts = [
-            this.current_loader.project.fetch_all(),
-            this.current_loader.task.fetch_all(),
-            this.current_loader.job.fetch_all(),
-            this.current_loader.database.fetch_all(),
-            this.current_loader.node.fetch_all(),
-            this.current_loader.log.fetch_all(),
-            this.current_loader.lib.fetch_all(),
-            this.current_loader.user.fetch_all(),
+            this.current_loader.project.init(),
+            this.current_loader.task.init(),
+            this.current_loader.job.init(),
+            this.current_loader.database.init(),
+            this.current_loader.node.init(),
+            this.current_loader.log.init(),
+            this.current_loader.lib.init(),
+            this.current_loader.user.init(),
         ]
         return Promise.all(ts)
     }

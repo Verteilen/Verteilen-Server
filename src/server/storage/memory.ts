@@ -11,9 +11,9 @@ import {
     Task,
     Database,
     Node,
-    Log,
     Library,
     UserProfile,
+    ExecutionLog,
 } from "verteilen-core"
 import { RecordIOLoader, RecordLoader } from "./base"
 import { SERECT } from "../../interface/config"
@@ -322,7 +322,7 @@ export const CreateRecordMemoryLoader = (loader:MemoryData):RecordLoader => {
         job: _CreateRecordMemoryLoader<Job>(loader, RecordType.JOB),
         database: _CreateRecordMemoryLoader<Database>(loader, RecordType.DATABASE),
         node: _CreateRecordMemoryLoader<Node>(loader, RecordType.NODE),
-        log: _CreateRecordMemoryLoader<Log>(loader, RecordType.LOG),
+        log: _CreateRecordMemoryLoader<ExecutionLog>(loader, RecordType.LOG),
         lib: _CreateRecordMemoryLoader<Library>(loader, RecordType.LIB),
         user: _CreateRecordMemoryLoader<UserProfile>(loader, RecordType.USER),
     }

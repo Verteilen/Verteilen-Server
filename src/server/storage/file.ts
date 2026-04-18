@@ -72,7 +72,7 @@ const _CreateRecordIOLoader = <T extends DataHeader & Shareable>(loader:IOBase, 
             if(!r) return false
 
             const file = loader.join(root, uuid + ext)
-            await loader.write_string(file, data)
+            await loader.write_string(file, JSON.stringify(data, null, 2))
             return true
         },
         load: async (uuid:string, token?:string):Promise<T> => {

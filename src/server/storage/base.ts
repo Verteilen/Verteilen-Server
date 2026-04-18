@@ -1,4 +1,4 @@
-import { Database, DataHeader, Job, Library, Log, Node, Project, Shareable, Task, UserProfile } from "verteilen-core"
+import { Database, DataHeader, Job, Library, ExecutionLog, Node, Project, Shareable, Task, UserProfile } from "verteilen-core"
 
 /**
  * **Server Use Interface**\
@@ -53,7 +53,7 @@ export interface RecordLoader {
     job: RecordIOLoader<Job>
     database: RecordIOLoader<Database>
     node: RecordIOLoader<Node>
-    log: RecordIOLoader<Log>
+    log: RecordIOLoader<ExecutionLog>
     lib: RecordIOLoader<Library>
     user: RecordIOLoader<UserProfile>
 }

@@ -11,7 +11,7 @@
 //
 import { Socket } from "socket.io"
 import { MemoryData, Job, Project, Task } from "verteilen-core"
-import { RecordLoader } from "../io/base"
+import { RecordLoader } from "../storage"
 import { ServerBase } from "../server"
 import { v6 as uuidv6 } from 'uuid'
 
@@ -39,7 +39,7 @@ export class Project_Module {
         const p:Project | undefined = this.memory.projects.find(p=> p.uuid == uuid)
         if(!p) return
         p.tasks_uuid = uuids
-        this.loader.project.save(uuid, JSON.stringify(p, null, 4), token)
+        this.loader.project.save(uuid, p, token)
     }
 
     async PopulateProject(socket:Socket | undefined, uuid:string, token?: string | undefined):Promise<void> {
@@ -129,14 +129,14 @@ export class Project_Module {
     async _CloneProjects(socket:Socket | undefined, uuids:Array<string>, token?: string | undefined):Promise<Array<string>>{
         const p = uuids.map(x => this.loader.project.load(x, token))
         const ps = await Promise.all(p)
-        const projects:Array<Project> = ps.map(x => JSON.parse(x))
+        const projects:Array<Project> = ps.map(x => x)
         projects.forEach((x, i) => x.uuid = uuidv6({}, undefined, i))
         const jus = projects.map(x => this._CloneTasks(socket, x.tasks_uuid, token))
         const ju = await Promise.all(jus)
         projects.forEach((t, index) => {
             t.tasks_uuid = ju[index]
         })
-        const js = projects.map(x => this.loader.project.save(x.uuid, JSON.stringify(x), token))
+        const js = projects.map(x => this.loader.project.save(x.uuid, x, token))
         await Promise.all(js)
         return projects.map(x => x.uuid)
     }
@@ -152,14 +152,14 @@ export class Project_Module {
     async _CloneTasks(socket:Socket | undefined, uuids:Array<string>, token?: string | undefined):Promise<Array<string>> {
         const p = uuids.map(x => this.loader.task.load(x, token))
         const ps = await Promise.all(p)
-        const tasks:Array<Task> = ps.map(x => JSON.parse(x))
+        const tasks:Array<Task> = ps.map(x => x)
         tasks.forEach((x, i) => x.uuid = uuidv6({}, undefined, 2500 + i))
         const jus = tasks.map(x => this._CloneJobs(socket, x.jobs_uuid, token))
         const ju = await Promise.all(jus)
         tasks.forEach((t, index) => {
             t.jobs_uuid = ju[index]
         })
-        const js = tasks.map(x => this.loader.task.save(x.uuid, JSON.stringify(x), token))
+        const js = tasks.map(x => this.loader.task.save(x.uuid, x, token))
         await Promise.all(js)
         return tasks.map(x => x.uuid)
     }
@@ -175,9 +175,9 @@ export class Project_Module {
     async _CloneJobs(socket:Socket | undefined, uuids:Array<string>, token?: string | undefined):Promise<Array<string>>{
         const p = uuids.map(x => this.loader.job.load(x, token))
         const ps = await Promise.all(p)
-        const jobs:Array<Job> = ps.map(x => JSON.parse(x))
+        const jobs:Array<Job> = ps.map(x => x)
         jobs.forEach((x, i) => x.uuid = uuidv6({}, undefined, 5000 + i))
-        const js = jobs.map(x => this.loader.job.save(x.uuid, JSON.stringify(x), token))
+        const js = jobs.map(x => this.loader.job.save(x.uuid, x, token))
         await Promise.all(js)
         return jobs.map(x => x.uuid)
     }
@@ -224,7 +224,7 @@ export class Project_Module {
                 continue
             }
             buffer.tasks_uuid.splice(task_index, 1)
-            caller.push(this.loader.project.save(u, JSON.stringify(buffer, null, 4)))
+            caller.push(this.loader.project.save(u, buffer))
         }
         await Promise.all(caller)
     }
@@ -250,7 +250,7 @@ export class Project_Module {
                 continue
             }
             buffer.jobs_uuid.splice(job_index, 1)
-            caller.push(this.loader.task.save(u, JSON.stringify(buffer, null, 4)))
+            caller.push(this.loader.task.save(u, buffer))
         }
         await Promise.all(caller)
     }
