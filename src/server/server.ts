@@ -79,9 +79,9 @@ export class ServerBase {
 
     /**
      * **Data: Memory**\
-     * Load every type of data from disk, store them into memory
+     * Init every type of data from disk
      */
-    LoadFromDisk = ():Promise<Array<boolean>> => {
+    Init = ():Promise<Array<boolean>> => {
         const ts = [
             this.current_loader.project.init(),
             this.current_loader.task.init(),

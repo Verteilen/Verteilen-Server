@@ -39,11 +39,12 @@ import { CreatePluginLoader } from './server/plugin'
 import { PluginFeedback } from './server/server'
 import { Account_Module } from './server/module/account';
 
+/**
+ * The main login of backend server
+ */
 export class BackendEvent extends Server implements BackendAction {
     console:ConsoleServerManager
-
     preference: Preference = CreatePreference()
-
     setting: ServerSetting | undefined
     jsCall:ClientJavascript
     libs:Libraries = {libs: []}
@@ -52,7 +53,7 @@ export class BackendEvent extends Server implements BackendAction {
         super()
         const feedback:PluginFeedback = { socket: undefined }
         
-        this.LoadFromDisk()
+        this.Init()
         this.plugin_loader = CreatePluginLoader(this.io, this.plugin, (uuid:string) => this.detail!.websocket_manager?.targets.find(x => x.uuid == uuid), feedback)
         this.plugin_loader.load_all()
         this.detail = new ServerDetail(this.io, this, feedback, messager, console.log)
